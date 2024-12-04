@@ -13,7 +13,7 @@ BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"
 effective_genome_size: 2913022398
 
 # macs2 options
-macs2_minimum_FDR_cutoff: 0.05
+macs2_qvalue: 0.05
 minNumberOfSampleOverlaps: 2
 
 # bamCoverage options
