@@ -27,7 +27,7 @@ def BamFiles_dict_from_samples(sample, samples_table):
     str: Space-separated string of treatment BAM file names for the sample.
     """
     # Get a set of treatment BAM file names for the sample from the samples table
-    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "treatmentBam"].to_list())
+    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "sampleBam"].to_list())
 
     # Join the list of BAM file names with a space separator and return the resulting string
     return ' '.join([str(item) for item in bam_lst])
