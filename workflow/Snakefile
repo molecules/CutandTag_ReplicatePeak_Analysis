@@ -48,6 +48,8 @@ rule call_peaks_with_macs2:
         qvalue=config["macs2_qvalue"],
         sample_name="{sample}",
         output_dir="results/macs2Peaks/"
+    envmodules:
+        "macs2"
     shell:
         """
         macs2 callpeak -t {input.bam} \
@@ -67,6 +69,8 @@ rule generate_consensus_peaks:
         consensus="results/consensusPeaks/{Set}_consensus_peaks.rds"
     params:
         min_overlap=config["minNumberOfSampleOverlaps"]
+    envmodules:
+        "r"
     script:
         "scripts/reportOverlappingPeaks.R"
 
@@ -78,7 +82,45 @@ rule make_bed_of_reproducible_peaks:
         "results/consensusPeaks/{Set}_consensus_peaks.bed"
     params:
         min_overlap=config["minNumberOfSampleOverlaps"]
+    envmodules:
+        "r"
     script:
+        "scripts/make_bed_of_reproducible_peaks.R"
+
+# Create BAM files from consensus peaks
+rule create_bam_from_consensus:
+    input:
+        bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
+    output:
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
+    params:
+        genome=config["genome"]
+    envmodules:
+        "bedtools",
+        "samtools"
+    shell:
+        """
+        bedtools bedtobam -i {input.bed} -g {params.genome} > {output.bam}
+        samtools index {output.bam}
+        """
+
+# Create BigWig files from consensus peaks
+rule create_bigwig_from_consensus:
+    input:
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
+    output:
+        bigwig="results/consensusPeaks/{Set}_consensus_peaks.bw"
+    params:
+        bin_size=config["binSize"],
+        genome_size=config["effective_genome_size"]
+    envmodules:
+        "deeptools"
+    shell:
+        """
+        bamCoverage --bam {input.bam} --outFileName {output.bigwig} \
+        --binSize {params.bin_size} --effectiveGenomeSize {params.genome_size} --normalizeUsing CPM
+        """
+
         "scripts/make_bed_of_reproducible_peaks.R"
 
 # Create BAM files from consensus peaks
