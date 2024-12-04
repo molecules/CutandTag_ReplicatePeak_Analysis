@@ -15,7 +15,7 @@ from datetime import datetime
 now = datetime.now()
 tmstmp = str(now.strftime("%y%m%d_%H%M"))
 
-def Tx_BamFiles_dict_from_samples(sample, samples_table):
+def BamFiles_dict_from_samples(sample, samples_table):
     """
     Returns a space-separated string of treatment BAM files for a given sample from a samples table.
 
