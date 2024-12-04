@@ -23,14 +23,6 @@ def Tx_BamFiles_dict_from_samples(sample, samples_table):
     # Join the list of BAM file names with a space separator and return the resulting string
     return ' '.join([str(item) for item in bam_lst])
 
-def Crl_BamFiles_dict_from_samples(sample, samples_table):
-
-    # Get a set of treatment BAM file names for the sample from the samples table
-    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "sampleBam"].to_list())
-
-    # Join the list of BAM file names with a space separator and return the resulting string
-    return ' '.join([str(item) for item in bam_lst])
-
 def filter_sample_by_set(Set,samples_Table):
     """
     This function takes a 'set' value as input and returns a list containing
