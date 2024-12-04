@@ -15,6 +15,56 @@ from datetime import datetime
 now = datetime.now()
 tmstmp = str(now.strftime("%y%m%d_%H%M"))
 
+def Tx_BamFiles_dict_from_samples(sample, samples_table):
+    """
+    Returns a space-separated string of treatment BAM files for a given sample from a samples table.
+
+    Parameters:
+    sample (str): Name of the sample.
+    samples_table (pandas.DataFrame): Table containing information about the samples.
+
+    Returns:
+    str: Space-separated string of treatment BAM file names for the sample.
+    """
+    # Get a set of treatment BAM file names for the sample from the samples table
+    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "treatmentBam"].to_list())
+
+    # Join the list of BAM file names with a space separator and return the resulting string
+    return ' '.join([str(item) for item in bam_lst])
+
+
+def In_BamFiles_dict_from_samples(sample, samples_table):
+    """
+    Returns a space-separated string of input BAM files for a given sample from a samples table.
+
+    Parameters:
+    sample (str): Name of the sample.
+    samples_table (pandas.DataFrame): Table containing information about the samples.
+
+    Returns:
+    str: Space-separated string of input BAM file names for the sample.
+    """
+    # Get a set of input BAM file names for the sample from the samples table
+    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "inputBam"].to_list())
+
+    # Join the list of BAM file names with a space separator and return the resulting string
+    return ' '.join([str(item) for item in bam_lst])
+
+
+def filter_sample_by_set(Set,samples_Table):
+    """
+    This function takes a 'set' value as input and returns a list containing
+    the unique sample names corresponding to the given 'set' value from a pandas dataframe.
+    """
+    # Filter the DataFrame to include only rows with the desired 'merged_sample' value
+    filtered_rows = samples_Table[samples_Table['set'] == Set]
+
+    # Convert the 'sample' column from 'filtered_rows' to a list, remove duplicates by converting it to a set and then back to a list
+    unique_samples = list(set(filtered_rows['sample'].tolist()))
+    
+    # Return the dictionary containing the filtered samples
+    return unique_samples
+
 # this reads the CSV file and sets an index using the values in the "sample" column.
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
 # convert all values in dataframe to strings
@@ -66,7 +116,7 @@ rule all:
 
 
 ##################################################################
-##                      pipeline rules                          ##
+##                      link_to_input_files                     ##
 ##################################################################
         
 # Merge technical replicates
@@ -79,7 +129,7 @@ rule link_to_input_files:
         in_technical_replicates = lambda wildcards: cf.In_BamFiles_dict_from_samples(wildcards.sample, samples_table),
     # Define output file paths for merged technical replicate BAM files
     output:
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
+        tx_merged_bam = "results/mergedTechnicalReplicate/{sample}_tx.bam",
         in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
     # Load required software modules
     envmodules:
@@ -99,7 +149,7 @@ rule link_to_input_files:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                 call_narrow_peaks_with_macs2                 ##
 ##################################################################
 
 # Call narrow peaks with MACS2
