@@ -1,98 +1,30 @@
 # samples file
 samples_csv: "config/samples.csv"
+
 # name of experiment
-experimentName: "testExperiment" 
-# genome-of-interest (must be dm6, danRer7, danRer10, danRer11, hg19, hg38, mm9, mm10, or mm39)
+experimentName: "testExperiment"
+
+# genome-of-interest
 genome_of_interest: "hg38"
 BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"
-# number of processors to use for generating greylist (make_greylist_from_merged_input rule)
-greyListProcessorsNumber: 8
+
 # effective genome size
 ## for effective genome sizes see: https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html
 effective_genome_size: 2913022398
-# run greylist option
-blacklist_file: "resources/hg38-blacklist.v2.bed"
-# macs2 options
-# macs2 "normal" options
-macs2_minimum_FDR_cutoff: 0.05
-# macs2 "broad" options
-macs2_broad_minimum_FDR_cutoff: 0.1
-# euler plot options
-## base font size for euler plot
-EulerFontSize: 8
-## colors separated by commas, should be in quotes
-EulerColors: "red,green,blue"
-## height and width in inches of Euler pdf made by pipeline
-EulerWidth: 4
-EulerHeight: 2
-# Reproducible peak options
-## Number of samples in which peak must be present
-minNumberOfSampleOverlaps: 2
-# options for background normalizing or subtracting with bamcompare and computeMatrix
-## choose from "readCount", "SES", or "None"
-scaleFactorsMethod: "None"
-## choose from "RPKM", "CPM", "BPM", "None"
-normalizeUsing: "CPM"
-## choose from "log2", "ratio", "subtract", "add", "mean", "reciprocal_ratio", "first", "second"
-bamcompareOperation: "log2"
-## chromosomes to ignore during normalization with bam compare
-ignoreForNormalization: "chrX chrM chrY"
-## choose an integer for bp
-binSize: 50
-## smooth length
-smoothLength: 150
-## Run_GreyList Option
-Run_GreyList: False
-## path to blacklist bed file
-blackListFileName: "resources/blackLists/hg38-blacklist.v2.bed"
-## read processing options; all integers
-minFragmentLength: 50
-maxFragmentLength: 1000
-minMappingQuality: 20
-## number of processors
-numberOfProcessors: 8
-## before or after region start length for count matrix; integer bp
-beforeRegionStartLength: 3000
-afterRegionStartLength: 3000
-# heat plot options
-colorsForHeatPlot: "#543005,#f5f5f5,#003c30"
-heatplotBreaks: "-3,0,3"
-## dimensions of pdf in inches
-pdfWidth: 2
-pdfHeight: 4
 
-#################################################################
-##                     Environment Modules                     ##
-#################################################################
-# These will be specific to your cluster                        #
-#################################################################
+# macs2 options
+macs2_minimum_FDR_cutoff: 0.05
+minNumberOfSampleOverlaps: 2
+
+# bamCoverage options
+## normalization method
+normalizeUsing: "CPM"
+## bin size for bigwig files
+binSize: 50
+
+# environment modules
 deeptools: "deeptools/3.4.3"
-bedops: "bedops/2.4.3"
 macs2: "macs2/2.2.7.1"
-fastp: "fastp/0.23.2"
-bwa: "bwa/0.7.15"
 samtools: "samtools/1.14"
-picard: "picard/2.21.2"
-bamtools: "bamtools/2.5.1"
 bedtools: "bedtools/2.30.0"
 R: "R/4.1.2-mkl"
-Bioconductor: "bioconductor/3.14"
-# unused below
-spike_in_chrom_prefix: "EC_"
-# trimmomatic options:
-trimmomatic_threads: 8
-trimmomatic_adapterfile: "/usr/local/analysis/trimmomatic/0.35/lib/adapters/TruSeq3-PE-2.fa"
-# cutadapt options
-cutadapt_adapterfile: "/usr/local/analysis/trimmomatic/0.35/lib/adapters/TruSeq3-PE-2.fa"
-# bowtie2 options
-bowtie2_genome: "/Volumes/Sansam/hpc-nobackup/bowtie2Indexes/hg38_ecoli_bowtie2Index/hg38_ecoli_bowtie2Index"
-bowtie2_threads: 12
-bowtie2_samtools_threads: 12
-# sicer options:
-sicer_genome: "hg38"
-sicer_windowSize: 200
-sicer_fragmentSize: 150
-sicer_fdr: 0.01
-sicer_gapSize: 600
-# bamCoverage options
-bamCoverage_binSize: 100
