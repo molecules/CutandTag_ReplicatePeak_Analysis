@@ -182,7 +182,7 @@ rule call_narrow_peaks_with_macs2:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                      write_read_counts                       ##
 ##################################################################
 
 # Write read counts for each BAM file to a file
@@ -211,7 +211,7 @@ rule write_read_counts:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                 downsample_min_read_counts                   ##
 ##################################################################
 
 # Downsample read counts to minimum
@@ -268,7 +268,7 @@ rule downsample_min_read_counts:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                    merged_downsampled_bams                   ##
 ##################################################################
 
 # Merge downsampled samples
@@ -315,80 +315,7 @@ rule merged_downsampled_bams:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# Make greylist from merged input and combine with blacklist
-"""
-An if-then statement controls the behavior of the
-make_greylist_from_merged_input rule based on config["Run_GreyList"]. If set
-to True, the pipeline generates a greylist from the merged input downsampled
-BAM file using the R script and combines it with the provided blacklist. The
-greylist contains regions with potential artifacts or biases, while the
-blacklist contains known problematic regions. The combined list helps filter
-these regions during analysis.
-
-If config["Run_GreyList"] is False, the pipeline skips greylist generation
-and only uses the provided blacklist for filtering. In this case, the rule
-copies the contents of the blacklist to both the greylist and combined list
-output files. The if-then statement allows users to easily toggle the
-inclusion of greylist generation, providing flexibility to adapt the analysis
-to different datasets or requirements.
-"""
-
-if config["Run_GreyList"] == True:
-    # Rule to generate greylist when Run_GreyList is set to True
-    rule make_greylist_from_merged_input:  
-            # Define input files for the rule
-            input:
-                # Merged input downsampled BAM file
-                in_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-            # Define output file paths for the greylist and combined greylist and blacklist
-            output:
-                greylist="results/greyAndBlackLists/{sample}_greylist.bed",
-                greyAndBlackList="results/greyAndBlackLists/{sample}_greyAndBlacklist.bed",
-            # Set parameters for the rule
-            params:
-                config["blackListFileName"],
-                config["BSgenomeRPackage"],
-                config["minMappingQuality"],
-                config["greyListProcessorsNumber"],
-            # Load required software modules
-            envmodules:
-                config["R"],
-                config["Bioconductor"],
-            # Define the R script to generate greylist and combined greylist and blacklist
-            script: "scripts/makeGreyAndBlackLists.R"
-else:
-    # Rule to skip generating greylist when Run_GreyList is set to False
-    rule make_greylist_from_merged_input:  
-            # Define input files for the rule
-            input:
-                # Merged input downsampled BAM file
-                in_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-            # Define output file paths for the greylist and combined greylist and blacklist
-            output:
-                greylist="results/greyAndBlackLists/{sample}_greylist.bed",
-                greyAndBlackList="results/greyAndBlackLists/{sample}_greyAndBlacklist.bed",
-            # Set parameters for the rule
-            params:
-                config["blackListFileName"],
-                config["BSgenomeRPackage"],
-                config["minMappingQuality"],
-                config["greyListProcessorsNumber"],
-            # Load required software modules
-            envmodules:
-                config["R"],
-                config["Bioconductor"],
-            # Define shell commands to copy the blacklist to greylist and combined greylist and blacklist
-            shell:
-                """
-                cp {params[0]} {output.greylist}
-                cp {params[0]} {output.greyAndBlackList}
-                """
-
-##################################################################
-##                      pipeline rules                          ##
+##           call_narrow_peaks_with_macs2_on_merged             ##
 ##################################################################
 
 # Call narrow peaks with MACS2 on merged BAM files
@@ -418,7 +345,7 @@ rule call_narrow_peaks_with_macs2_on_merged:
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##             report_peaks_overlapping_with_merged             ##
 ##################################################################
 
 # Get overlaps between peaks of merged sample and individual samples
