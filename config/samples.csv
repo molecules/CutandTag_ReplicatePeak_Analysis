@@ -1,0 +1,5 @@
+sample,treatmentBam,inputBam,set
+testData1A,resources/testData/test1.bam,resources/testData/input1.bam,testSet1
+testData1B,resources/testData/test1B.bam,resources/testData/input1.bam,testSet1
+testData2A,resources/testData/test2.bam,resources/testData/input2.bam,testSet2
+testData2B,resources/testData/test2.bam,resources/testData/input2B.bam,testSet2
