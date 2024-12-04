@@ -1,4 +1,4 @@
-sample,treatmentBam,sampleType,set
+sample,sampleBam,sampleType,set
 Treatment_Rep1,resources/test1.bam,treatment,Set1
 Treatment_Rep2,resources/test2.bam,treatment,Set1
 Treatment_Rep3,resources/test3.bam,treatment,Set1
