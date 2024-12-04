@@ -1,15 +1,25 @@
 configfile: "config/config.yml"
 
-##################################################################
-##                    Define input functions                    ##
-##################################################################
-
-# Author: Kevin Boyd
-# Date: Dec 4, 2024
-# Adapted from: "https://github.com/SansamLab-Pipelines-Genomics/ReplicatePeakAnalyzer"
-
 import pandas as pd
-from common_functions import filter_sample_by_set
+
+# Define the filter_sample_by_set function
+def filter_sample_by_set(Set, samples_table):
+    """
+    This function filters the samples_table to include only the samples
+    belonging to a given 'Set' and returns a list of unique sample names.
+
+    Parameters:
+    - Set (str): The identifier for the set of samples to filter.
+    - samples_table (pandas.DataFrame): The dataframe containing sample metadata.
+
+    Returns:
+    - List[str]: List of sample names in the specified set.
+    """
+    # Filter rows where 'set' matches the provided Set value
+    filtered_rows = samples_table[samples_table['set'] == Set]
+
+    # Extract unique sample names and return them as a list
+    return list(set(filtered_rows['sample'].tolist()))
 
 # Read and process the samples table
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
