@@ -15,23 +15,21 @@ from datetime import datetime
 now = datetime.now()
 tmstmp = str(now.strftime("%y%m%d_%H%M"))
 
-def BamFiles_dict_from_samples(sample, samples_table):
-    """
-    Returns a space-separated string of treatment BAM files for a given sample from a samples table.
+def Tx_BamFiles_dict_from_samples(sample, samples_table):
 
-    Parameters:
-    sample (str): Name of the sample.
-    samples_table (pandas.DataFrame): Table containing information about the samples.
-
-    Returns:
-    str: Space-separated string of treatment BAM file names for the sample.
-    """
     # Get a set of treatment BAM file names for the sample from the samples table
     bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "sampleBam"].to_list())
 
     # Join the list of BAM file names with a space separator and return the resulting string
     return ' '.join([str(item) for item in bam_lst])
 
+def Crl_BamFiles_dict_from_samples(sample, samples_table):
+
+    # Get a set of treatment BAM file names for the sample from the samples table
+    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "sampleBam"].to_list())
+
+    # Join the list of BAM file names with a space separator and return the resulting string
+    return ' '.join([str(item) for item in bam_lst])
 
 def filter_sample_by_set(Set,samples_Table):
     """
