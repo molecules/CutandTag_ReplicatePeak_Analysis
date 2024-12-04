@@ -61,12 +61,6 @@ samples_lst = samples_table['sample'].to_list()
 
 rule all:
     input:
-        # Expand the list of greylist files for each set
-        expand(f"results/greyAndBlackLists/{{Set}}_greylist.bed",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of grey and blacklist files for each set
-        expand(f"results/greyAndBlackLists/{{Set}}_greyAndBlacklist.bed",
-               Set=list(set(samples_table['set']))),
         # Expand the list of merged peaks files for each set
         expand(f"results/macs2_normalPeaks_merged/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak",
                Set=list(set(samples_table['set']))),
