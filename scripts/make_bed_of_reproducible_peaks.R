@@ -1,4 +1,3 @@
-# Script name: filterConsensusPeaks
 # Purpose: Filters peaks based on overlap counts with other peak files 
 #          and saves the consensus peaks in BED format.
 
