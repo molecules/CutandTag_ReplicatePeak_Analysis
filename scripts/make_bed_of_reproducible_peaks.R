@@ -1,23 +1,32 @@
+# Script name: filterConsensusPeaks
+# Purpose: Filters peaks based on overlap counts with other peak files 
+#          and saves the consensus peaks in BED format.
+
 library(magrittr)
 library(GenomicRanges)
 
-input <- snakemake@input[[1]]
-output <- snakemake@output[[1]]
-min <- snakemake@params[[1]]
+# Get input and output files and minimum overlap parameter
+input <- snakemake@input[[1]] # Input RDS file with metadata
+output <- snakemake@output[[1]] # Output BED file
+min <- as.numeric(snakemake@params[[1]]) # Minimum overlap threshold
 
+# Read in the RDS file with metadata
 gr <- readRDS(input)
 
+# Filter peaks based on overlap counts
 gr2 <- gr %>%
   .[(gr %>%
       mcols %>%
       as.matrix %>%
       rowSums) >= min]
 
-df <- data.frame(seqnames=seqnames(gr2),
-                 starts=start(gr2)-1,
-                 ends=end(gr2),
-                 names=c(rep(".", length(gr2))),
-                 scores=c(rep(".", length(gr2))),
-                 strands=strand(gr2))
+# Convert filtered GRanges object to BED format
+df <- data.frame(seqnames = seqnames(gr2),
+                 starts = start(gr2) - 1,
+                 ends = end(gr2),
+                 names = c(rep(".", length(gr2))),
+                 scores = c(rep(".", length(gr2))),
+                 strands = strand(gr2))
 
-write.table(df, file=output, quote=F, sep="\t", row.names=F, col.names=F)
+# Write output to BED file
+write.table(df, file = output, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
