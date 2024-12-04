@@ -1,5 +1,9 @@
-# Purpose: Filters peaks based on overlap counts with other peak files 
-#          and saves the consensus peaks in BED format.
+# Author: Inistial Chris Sansam script modified by Kevin Boyd
+# Date Modified: 12/4/2024
+# Purpose: This script calculates the overlap between a merged peaks file 
+#          and a list of additional peak files, storing the overlap information 
+#          as metadata in the merged peaks object. The merged peaks object 
+#          is saved in RDS format as the output file.
 
 library(magrittr)
 library(GenomicRanges)
