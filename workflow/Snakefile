@@ -130,10 +130,10 @@ rule create_bam_from_consensus:
     output:
         bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
     params:
-        genome=config["genome"]
+        genome_file="resources/hg38.chrom.sizes"
     shell:
         """
-        bedtools bedtobam -i {input.bed} -g {params.genome} > {output.bam}
+        bedtools bedtobam -i {input.bed} -g {params.genome_file} > {output.bam}
         samtools index {output.bam}
         """
 
