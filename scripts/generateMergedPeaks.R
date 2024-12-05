@@ -1,39 +1,38 @@
 # generateMergedPeaks.R
 # Author: Kevin Boyd (modified from an original by Chris Sansam)
-# Date Modified: 12/4/2024
-# Purpose: This script merges overlapping peaks from multiple input files
-#          and generates a unified set of merged peaks. The merged peaks
-#          are saved as a GRanges object in an RDS file.
+# Date Modified: 12/5/2024
+# Purpose: This script merges MACS2 peak files into a single consensus peak set
+#          and calculates the number of overlaps across all input peak files.
 
-# Load required libraries
 library(magrittr)
 library(GenomicRanges)
 library(stringr)
 
 # Capture command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
-peak_files_input <- args[-length(args)]  # All arguments except the last are input peak files
-output <- args[length(args)]            # Last argument is the output file
+peak_files <- args[-length(args)]  # All but last argument are input files
+output <- args[length(args)]      # Last argument is the output file
 
-# Process input peak files
-peaks_list <- lapply(peak_files_input, function(file) {
-    read.table(file, header = FALSE) %>%
-    GenomicRanges::makeGRangesFromDataFrame(
-        ignore.strand = TRUE,
-        seqnames.field = "V1",
-        start.field = "V2",
-        end.field = "V3"
-    )
+# Load MACS2 peak files as GRanges objects
+gr_list <- lapply(peak_files, function(file) {
+  peaks <- read.table(file, header = FALSE)
+  GenomicRanges::makeGRangesFromDataFrame(
+    peaks,
+    ignore.strand = TRUE,
+    seqnames.field = "V1",
+    start.field = "V2",
+    end.field = "V3"
+  )
 })
 
-# Combine all peaks into a single GRanges object
-merged_peaks <- reduce(do.call(c, peaks_list))
+# Merge all peaks into a single GRanges object
+merged_peaks <- reduce(do.call(c, gr_list))  # Merge all ranges into a single GRanges
 
-# Count overlaps across input peak files
-overlap_counts <- countOverlaps(merged_peaks, peaks_list)
+# Count overlaps for each merged peak across input files
+overlap_counts <- sapply(gr_list, function(gr) countOverlaps(merged_peaks, gr))
 
-# Filter peaks based on overlap threshold
-merged_consensus_peaks <- merged_peaks[overlap_counts >= 2]  # Adjust threshold as needed (e.g., 2 out of 3)
+# Add overlap counts as metadata
+GenomicRanges::mcols(merged_peaks) <- data.frame(overlap_counts)
 
-# Save merged peaks to RDS file
-saveRDS(merged_consensus_peaks, file = output)
+# Save the merged peaks as an RDS file
+saveRDS(merged_peaks, file = output)
