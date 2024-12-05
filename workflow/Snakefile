@@ -161,3 +161,24 @@ rule make_euler_plot_of_overlaps_with_merged:
         {params.euler_fontsize} "{params.euler_colors}" {params.pdf_width} {params.pdf_height}
         """
 
+##################################################################
+##                   Midpoint and Peak Overlaps                 ##
+##################################################################
+
+rule midpoint_and_peak_overlaps:
+    input:
+        # Collect reproducible peaks BED files (already sorted by earlier rules)
+        reproducible_beds=expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"])))
+    output:
+        # Outputs: midpoint and full overlaps
+        midpoint="results/overlaps/MidpointOverlaps.bed",
+        peak="results/overlaps/PeakOverlaps.bed"
+    params:
+        # Prefix for output files
+        output_prefix="results/overlaps/Overlaps"
+    envmodules:
+        config["R"]
+    shell:
+        """
+        Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.output_prefix}
+        """
