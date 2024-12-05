@@ -1,7 +1,7 @@
 # CutandTag_ReplicatePeak_Analysis
 
-![Cut&Tag_ReplicatePeak](/images/Cut&Tag.png)
-+ OpenAI. (2024). NewDescription. DALL-E. Retrieved from OpenAI.
+![ReplicatePeaks](/images/replicatePeaks.png)
++ OpenAI. (2024). Scientific data visualization: Replicate peak analysis in bioinformatics [AI-generated image]. DALL-E. Retrieved from ChatGPT interface.
 
 # 1) Project Description
 CutAndTag_ReplicatePeak_Analysis is a Snakemake pipeline adapted created in order to... This pipeline is designed to take processed Cut-and-Tag sequencing data to analyze of chromatin accessibility and DNA-protein interactions. It includes steps for...
