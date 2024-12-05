@@ -79,7 +79,7 @@ rule generate_merged_peaks:
         """
 
 ##################################################################
-##            Filter Consensus Peaks to BED Format              ##
+##                Make Bed of Reproducible Peaks                ##
 ##################################################################
 
 rule make_bed_of_reproducible_peaks:
@@ -91,7 +91,7 @@ rule make_bed_of_reproducible_peaks:
         min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
         config["R"]
-    script:
+    shell:
         """
         Rscript scripts/generateConsensusPeaks.R {input.merged} {params.min_overlap} {output.consensus}
         """
