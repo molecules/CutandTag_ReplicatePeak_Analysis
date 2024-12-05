@@ -73,8 +73,10 @@ rule generate_consensus_peaks:
         min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
         config["R"]
-    script:
-        "scripts/generateConsensusPeaks.R"
+    shell:
+        """
+        Rscript scripts/generateConsensusPeaks.R
+        """
 
 ##################################################################
 ##            Filter Consensus Peaks to BED Format              ##
