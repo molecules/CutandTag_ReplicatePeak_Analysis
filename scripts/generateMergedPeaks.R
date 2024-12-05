@@ -1,8 +1,9 @@
-# generateConsensusPeaks.R
+# generateMergedPeaks.R
 # Author: Kevin Boyd (modified from an original by Chris Sansam)
 # Date Modified: 12/4/2024
-# Purpose: This script calculates overlaps between individual peak files
-#          to generate a consensus peaks file.
+# Purpose: This script merges overlapping peaks from multiple input files
+#          and generates a unified set of merged peaks. The merged peaks
+#          are saved as a GRanges object in an RDS file.
 
 # Load required libraries
 library(magrittr)
@@ -32,7 +33,7 @@ merged_peaks <- reduce(do.call(c, peaks_list))
 overlap_counts <- countOverlaps(merged_peaks, peaks_list)
 
 # Filter peaks based on overlap threshold
-consensus_peaks <- merged_peaks[overlap_counts >= 2]  # Adjust threshold as needed (e.g., 2 out of 3)
+merged_consensus_peaks <- merged_peaks[overlap_counts >= 2]  # Adjust threshold as needed (e.g., 2 out of 3)
 
-# Save consensus peaks to RDS file
-saveRDS(consensus_peaks, file = output)
+# Save merged peaks to RDS file
+saveRDS(merged_consensus_peaks, file = output)
