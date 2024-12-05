@@ -1,15 +1,11 @@
 # samples file
 samples_csv: "config/samples.csv"
 
-# name of experiment
-experimentName: "testExperiment"
-
 # genome-of-interest
-genome: "hg38"
+genome: "hs"
 BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"
 
 # effective genome size
-## for effective genome sizes see: https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html
 effective_genome_size: 2913022398
 
 # macs2 options
@@ -17,9 +13,6 @@ macs2_qvalue: 0.05
 minNumberOfSampleOverlaps: 2
 
 # bamCoverage options
-## normalization method
-normalizeUsing: "CPM"
-## bin size for bigwig files
 binSize: 50
 
 # environment modules
