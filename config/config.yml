@@ -15,6 +15,9 @@ minNumberOfSampleOverlaps: 2
 # bamCoverage options
 binSize: 50
 
+# bedtobam
+chrom_sizes: "resources/hg38.chrom.sizes"
+
 # Euler plot parameters
 EulerFontSize: 8                # Base font size for the Euler plot
 EulerColors: "red,green,blue"   # Comma-separated colors for the plot
