@@ -39,7 +39,7 @@ rule all:
 # Call peaks with MACS2
 rule call_peaks_with_macs2:
     input:
-        bam="results/processed/{sample}.bam"
+        bam="resources/{sample}.bam"
     output:
         peaks="results/macs2Peaks/{sample}_peaks.narrowPeak",
         summary="results/macs2Peaks/{sample}_macs2Peak_summary.txt"
