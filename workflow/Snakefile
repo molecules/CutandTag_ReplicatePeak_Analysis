@@ -23,7 +23,7 @@ def filter_sample_by_set(Set, samples_table):
 
 # Read and process the samples table
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
-samples_table = samples_table.applymap(str)
+samples_table = samples_table.astype(str)  # Ensures all values are converted to strings
 samples_lst = samples_table['sample'].to_list()
 
 ##################################################################
@@ -94,43 +94,10 @@ rule create_bam_from_consensus:
     output:
         bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
     params:
-        genome=config["genome"]
+        genome_file="resources/hg38.chrom.sizes"  # Genome size file
     envmodules:
         "bedtools",
         "samtools"
-    shell:
-        """
-        bedtools bedtobam -i {input.bed} -g {params.genome} > {output.bam}
-        samtools index {output.bam}
-        """
-
-# Create BigWig files from consensus peaks
-rule create_bigwig_from_consensus:
-    input:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
-    output:
-        bigwig="results/consensusPeaks/{Set}_consensus_peaks.bw"
-    params:
-        bin_size=config["binSize"],
-        genome_size=config["effective_genome_size"]
-    envmodules:
-        "deeptools"
-    shell:
-        """
-        bamCoverage --bam {input.bam} --outFileName {output.bigwig} \
-        --binSize {params.bin_size} --effectiveGenomeSize {params.genome_size} --normalizeUsing CPM
-        """
-
-        "scripts/make_bed_of_reproducible_peaks.R"
-
-# Create BAM files from consensus peaks
-rule create_bam_from_consensus:
-    input:
-        bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
-    output:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
-    params:
-        genome_file="resources/hg38.chrom.sizes"
     shell:
         """
         bedtools bedtobam -i {input.bed} -g {params.genome_file} > {output.bam}
@@ -146,6 +113,8 @@ rule create_bigwig_from_consensus:
     params:
         bin_size=config["binSize"],
         genome_size=config["effective_genome_size"]
+    envmodules:
+        "deeptools"
     shell:
         """
         bamCoverage --bam {input.bam} --outFileName {output.bigwig} \
