@@ -30,6 +30,7 @@ rule all:
         # Ensure BAM and BigWig files for consensus peaks are created
         expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
         expand("results/mergedPeaks/{Set}_merged_peaks.rds", Set=list(set(samples_table["set"]))),
+        expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
 
