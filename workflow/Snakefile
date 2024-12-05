@@ -4,726 +4,134 @@ configfile: "config/config.yml"
 ##                    Define input functions                    ##
 ##################################################################
 
-# Author: Kevin Boyd
-# Date: Dec 4, 2024
-# Adapted from: "https://github.com/SansamLab-Pipelines-Genomics/ReplicatePeakAnalyzer"
-
 import pandas as pd
-import shutil
-import common_functions as cf
-from datetime import datetime
-now = datetime.now()
-tmstmp = str(now.strftime("%y%m%d_%H%M"))
 
-def BamFiles_dict_from_samples(sample, samples_table):
-
-    # Get a set of treatment BAM file names for the sample from the samples table
-    bam_lst = set(samples_table.loc[samples_table["sample"] == str(sample), "sampleBam"].to_list())
-
-    # Join the list of BAM file names with a space separator and return the resulting string
-    return ' '.join([str(item) for item in bam_lst])
-
-def filter_sample_by_set(Set,samples_Table):
-    """
-    This function takes a 'set' value as input and returns a list containing
-    the unique sample names corresponding to the given 'set' value from a pandas dataframe.
-    """
-    # Filter the DataFrame to include only rows with the desired 'merged_sample' value
-    filtered_rows = samples_Table[samples_Table['set'] == Set]
-
-    # Convert the 'sample' column from 'filtered_rows' to a list, remove duplicates by converting it to a set and then back to a list
-    unique_samples = list(set(filtered_rows['sample'].tolist()))
-    
-    # Return the dictionary containing the filtered samples
-    return unique_samples
-
-# this reads the CSV file and sets an index using the values in the "sample" column.
+# Read the CSV file and set an index using the values in the "sample" column.
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
-# convert all values in dataframe to strings
-samples_table = samples_table.applymap(str)
-# make a samples list
-samples_lst = samples_table['sample'].to_list()
 
+# Expand function to extract BAM paths
+bam_paths = expand("{bam}", bam=samples_table["bam"].tolist())
+
+# Filter samples by their set
+def filter_sample_by_set(Set, samples_table):
+    """
+    Filter the samples_table to include only the samples
+    belonging to a given 'Set' and return their names.
+    """
+    filtered_rows = samples_table[samples_table["set"] == Set]
+    return list(set(filtered_rows["sample"].tolist()))
 
 ##################################################################
-##                          rule all                            ##
+##                          Rule All                            ##
 ##################################################################
 
 rule all:
     input:
-        # Expand the list of merged peaks files for each set
-        expand(f"results/macs2_normalPeaks_merged/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of summit files for each set
-        expand(f"results/macs2_normalPeaks_merged/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_summits.bed",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of background normalized bigwig files for each set
-        expand(f"results/mergedBackgroundNormalizedBigwigs/{{Set}}_bkgrndNorm.bw",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of merged broad peaks files for each set
-        expand(f"results/macs2_broadPeaks_merged/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.broadPeak",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of narrow peaks files for each sample
-        expand(f"results/macs2_normalPeaks/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak",
-               sample=list(set(samples_table['sample']))),
-        # Expand the list of euler plot files for each set
-        expand(f"results/eulerPlot/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_eulerPlot.rds",
-               Set=list(set(samples_table['set']))),
-        expand(f"results/eulerPlot/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_eulerPlot.pdf",
-               Set=list(set(samples_table['set']))),
-        # Expand the list of background normalized bigwig files for each sample
-        expand(f"results/backgroundNormalizedBigwigs/{{sample}}_bkgrndNorm.bw",
-               sample=list(set(samples_table['sample']))),
-        # Expand the list of heat plot files for each set
-        expand(f"results/heatPlotOfReadsAcrossPeakSummits/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_heatPlotAcrossPeakSummits.rds",
-               Set=list(set(samples_table['set']))),
-        expand(f"results/heatPlotOfReadsAcrossPeakSummits/{{Set}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_heatPlotAcrossPeakSummits.pdf",
-               Set=list(set(samples_table['set']))),
-
+        # Ensure BAM and BigWig files for consensus peaks are created
+        expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
+        expand("results/mergedPeaks/{Set}_merged_peaks.rds", Set=list(set(samples_table["set"]))),
+        expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"]))),
+        expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
+        expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
 
 ##################################################################
-##                      link_to_input_files                     ##
-##################################################################
-        
-# Merge technical replicates
-rule link_to_input_files:
-    # Use params to define lambda functions that return the appropriate input files based on wildcards
-    params:
-        # Get the list of technical replicate BAM files for the sample from the samples table
-        tx_technical_replicates = lambda wildcards: cf.Tx_BamFiles_dict_from_samples(wildcards.sample, samples_table),
-        # Get the list of input replicate BAM files for the sample from the samples table
-        in_technical_replicates = lambda wildcards: cf.In_BamFiles_dict_from_samples(wildcards.sample, samples_table),
-    # Define output file paths for merged technical replicate BAM files
-    output:
-        tx_merged_bam = "results/mergedTechnicalReplicate/{sample}_tx.bam",
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-    # Load required software modules
-    envmodules:
-        config["samtools"]
-    # Define shell commands to merge and index BAM files
-    shell:
-        """
-        # copy, rename, and move original treatment files
-        cp {params.tx_technical_replicates} {output.tx_merged_bam}
-        # Index the merged technical replicate BAM file
-        samtools index -@ 8 {output.tx_merged_bam}
-        
-        # copy, rename, and move original control files
-        cp {params.in_technical_replicates} {output.in_merged_bam}
-        # Index the merged input replicate BAM file
-        samtools index -@ 8 {output.in_merged_bam}
-        """
-
-##################################################################
-##                 call_narrow_peaks_with_macs2                 ##
+##                        MACS2 Peak Calling                    ##
 ##################################################################
 
-# Call narrow peaks with MACS2
-rule call_narrow_peaks_with_macs2:
-    # Define input files for the rule
+rule call_peaks_with_macs2:
     input:
-        # Merged technical replicate BAM file
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
-        # Merged input replicate BAM file
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-    # Define output file path for the MACS2 narrowPeak file
+        bam=lambda wildcards: samples_table.loc[wildcards.sample, "bam"]
     output:
-        "results/macs2_normalPeaks/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.narrowPeak"
-    # Set parameters for MACS2 callpeak command
+        peaks="results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
+        summary="results/macs2Peaks/{sample}_macs2Peak_summary.txt"
     params:
-        # Effective genome size parameter
-        effective_genome_size=config["effective_genome_size"],
-        # Minimum FDR cutoff for peak calling
-        minimum_FDR_cutoff=str(config["macs2_minimum_FDR_cutoff"]),
-        # Sample name for output files
-        sample_name="{sample}"
-    # Load required software modules
+        genome=config["genome"],
+        qvalue=config["macs2_qvalue"],
+        sample_name="{sample}",
+        output_dir="results/macs2Peaks/"
     envmodules:
         config["macs2"]
-    # Define shell command to call peaks with MACS2
     shell:
         """
-        # Run MACS2 callpeak with the specified parameters, input files, and output directory
-        macs2 callpeak -t {input.tx_merged_bam} -c {input.in_merged_bam} -f BAMPE -g {params.effective_genome_size} -n {params.sample_name}_{params.minimum_FDR_cutoff} -q {params.minimum_FDR_cutoff} --outdir results/macs2_normalPeaks/
+        macs2 callpeak -t {input.bam} \
+        -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
+        --outdir {params.output_dir} -q {params.qvalue} --keep-dup all --nomodel \
+        2>{params.output_dir}/{params.sample_name}_macs2Peak_summary.txt
         """
 
 ##################################################################
-##                      write_read_counts                       ##
+##                     Generate Merged Peaks                    ##
 ##################################################################
 
-# Write read counts for each BAM file to a file
-rule write_read_counts:
-    # Define input files for the rule
+rule generate_merged_peaks:
     input:
-        # Merged technical replicate BAM file
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
-        # Merged input replicate BAM file
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-    # Define output file paths for read count files
-    output:
-        treatmentCountFile="results/mappedReadCounts/{sample}_treated_mappedReadCounts.txt",
-        inputCountFile="results/mappedReadCounts/{sample}_input_mappedReadCounts.txt",
-    # Load required software modules
-    envmodules:
-        config["samtools"]
-    # Define shell commands to calculate and write read counts
-    shell:
-        """
-        # Calculate read counts for treatment BAM file using samtools idxstats and awk, and write the result to a file
-        samtools idxstats {input.tx_merged_bam} | awk -F '\t' '{{s+=$3}}END{{print s}}' > {output.treatmentCountFile}
-        
-        # Calculate read counts for input BAM file using samtools idxstats and awk, and write the result to a file
-        samtools idxstats {input.in_merged_bam} | awk -F '\t' '{{s+=$3}}END{{print s}}' > {output.inputCountFile}
-        """
-
-##################################################################
-##                 downsample_min_read_counts                   ##
-##################################################################
-
-# Downsample read counts to minimum
-rule downsample_min_read_counts:
-    # Define input files for the rule
-    input:
-        # Merged technical replicate BAM file
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
-        # Merged input replicate BAM file
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-        # Treatment read count files for all samples in the same set as input and treatment
-        tx_counts=lambda wildcards: expand(
-            f"results/mappedReadCounts/{{sample}}_treated_mappedReadCounts.txt",
-            sample=cf.filter_sample_by_set(
-                samples_table.loc[samples_table['sample'] == wildcards.sample, 'set'].iloc[0],samples_table)),
-        # Input read count files for all samples in the same set as input and treatment
-        in_counts=lambda wildcards: expand(
-            f"results/mappedReadCounts/{{sample}}_input_mappedReadCounts.txt",
-            sample=cf.filter_sample_by_set(
-                samples_table.loc[samples_table['sample'] == wildcards.sample, 'set'].iloc[0],samples_table))
-    # Define output file paths for downsampled BAM files
-    output:
-        tx_downsampled_bam = "results/downSampledBams/{sample}_tx.bam",
-        in_downsampled_bam = "results/downSampledBams/{sample}_in.bam",
-    # Load required software modules
-    envmodules:
-        config["samtools"]
-    # Define shell commands to downsample read counts
-    shell:
-        """
-        # Find the minimum read count for treatment BAM files of the set of interest
-        tx_min=$(cat {input.tx_counts} | sort -n | head -1)
-        # Find the minimum read count for input BAM files of the set of interest
-        in_min=$(cat {input.in_counts} | sort -n | head -1)
-        
-        # Define a function to downsample a BAM file based on the minimum read count
-        downSampleBam () {{
-          # Calculate the fraction of reads to keep based on the provided minimum read count
-          fraction=$(samtools idxstats $2 | cut -f3 | awk -v ct=$1 'BEGIN {{total=0}} {{total += $1}} END {{print ct/total}}')
-          
-          # If the fraction is less than 1, downsample the BAM file; otherwise, keep the original file
-          if $fraction < 1
-          then
-            samtools view -@ 8 -b -s $fraction $2 > $3
-          else
-            cp $2 $3
-          fi     
-        }}
-        
-        # Downsample the treatment BAM file based on the minimum read count
-        downSampleBam ${{tx_min}} {input.tx_merged_bam} {output.tx_downsampled_bam}
-        # Downsample the input BAM file based on the minimum read count
-        downSampleBam ${{in_min}} {input.in_merged_bam} {output.in_downsampled_bam}
-        """
-
-##################################################################
-##                    merged_downsampled_bams                   ##
-##################################################################
-
-# Merge downsampled samples
-rule merged_downsampled_bams:
-    # Define input files for the rule using lambda functions
-    input:
-        # Treatment downsampled BAM files filtered by sample set
-        tx_bams=lambda wildcards: expand(
-          "results/downSampledBams/{sample}_tx.bam",
-          sample=cf.filter_sample_by_set(wildcards.sample, samples_table)),
-        # Input downsampled BAM files filtered by sample set
-        in_bams=lambda wildcards: expand(
-          "results/downSampledBams/{sample}_in.bam",
-          sample=cf.filter_sample_by_set(wildcards.sample, samples_table)),
-    # Define output file paths for merged downsampled BAM files
-    output:
-        tx_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_tx.bam",
-        in_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-    # Set parameters for the rule using lambda functions
-    params:
-        # Treatment downsampled BAM files filtered by sample set
-        tx_bams=lambda wildcards: expand(
-          "results/downSampledBams/{sample}_tx.bam",
-          sample=cf.filter_sample_by_set(wildcards.sample, samples_table)),
-        # Input downsampled BAM files filtered by sample set
-        in_bams=lambda wildcards: expand(
-          "results/downSampledBams/{sample}_in.bam",
-          sample=cf.filter_sample_by_set(wildcards.sample, samples_table)),
-    # Load required software modules
-    envmodules:
-        config["samtools"]
-    # Define shell commands to merge and index downsampled BAM files
-    shell:
-        """
-        # Merge treatment downsampled BAM files and save as a new BAM file
-        samtools merge -@ 8 {output.tx_merged_downsampled_bam} {input.tx_bams}
-        # Index the merged treatment downsampled BAM file
-        samtools index -@ 8 {output.tx_merged_downsampled_bam}
-        
-        # Merge input downsampled BAM files and save as a new BAM file
-        samtools merge -@ 8 {output.in_merged_downsampled_bam} {input.in_bams}
-        # Index the merged input downsampled BAM file
-        samtools index -@ 8 {output.in_merged_downsampled_bam}
-        """
-
-##################################################################
-##           call_narrow_peaks_with_macs2_on_merged             ##
-##################################################################
-
-# Call narrow peaks with MACS2 on merged BAM files
-rule call_narrow_peaks_with_macs2_on_merged:
-    # Define input files for the rule
-    input:
-        # Merged downsampled treatment BAM file
-        tx_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_tx.bam",
-        # Merged downsampled input BAM file
-        in_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-    # Define output file paths for the narrow peaks and summits
-    output:
-        "results/macs2_normalPeaks_merged/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.narrowPeak",
-        "results/macs2_normalPeaks_merged/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_summits.bed",
-    # Set parameters for the rule
-    params:
-        effective_genome_size=config["effective_genome_size"],
-        minimum_FDR_cutoff=str(config["macs2_minimum_FDR_cutoff"]),
-        sample_name="{sample}"
-    # Load required software module
-    envmodules:
-        config["macs2"]
-    # Define shell command to call narrow peaks with MACS2
-    shell:
-        """
-        macs2 callpeak -t {input.tx_merged_downsampled_bam} -c {input.in_merged_downsampled_bam} -f BAMPE -g {params.effective_genome_size} -n {params.sample_name}_{params.minimum_FDR_cutoff} -q {params.minimum_FDR_cutoff} --outdir results/macs2_normalPeaks_merged/
-        """
-
-##################################################################
-##             report_peaks_overlapping_with_merged             ##
-##################################################################
-
-# Get overlaps between peaks of merged sample and individual samples
-"""
-The reportOverlappingPeaks.R script reads in a merged peaks file and a
-parameter containing a list of additional peak files. It first filters
-the merged peaks file to remove any peaks that overlap with blacklisted
-regions. It then calculates the overlap between each peak file in the
-input parameter and the filtered merged peaks, and stores the resulting
-overlap information as metadata in the merged peaks object. Finally,
-the merged peaks object is saved in RDS format as the output file.
-"""
-rule report_peaks_overlapping_with_merged:
-# Define input files for the rule
-    input:
-        # Merged sample narrow peak file
-        f"results/macs2_normalPeaks_merged/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak",
-        # Grey and blacklist file for the sample
-        f"results/greyAndBlackLists/{{sample}}_greyAndBlacklist.bed",
-        # Narrow peak files of individual replicates
         lambda wildcards: expand(
-            f"results/macs2_normalPeaks/{{Sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak", 
-            Sample=cf.filter_sample_by_set(wildcards.sample, samples_table)),
-    # Define output file path for the overlaps
+            "results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
+            sample=filter_sample_by_set(wildcards.Set, samples_table)
+        )
     output:
-        f"results/mergedPeakOverlaps/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.rds",
-    # Set parameters for the rule
-    params:
-        # Comma-separated list of narrow peak files for individual samples
-        lambda wildcards: ','.join(expand(
-            f"results/macs2_normalPeaks/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.narrowPeak", 
-            sample=cf.filter_sample_by_set(wildcards.sample, samples_table))),
-    # Load required software modules
+        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     envmodules:
-        config["R"],
-        config["Bioconductor"],
-    # Define R script to report overlapping peaks
-    script:
-        "scripts/reportOverlappingPeaks.R"
+        config["R"]
+    shell:
+        """
+        Rscript scripts/generateMergedPeaks.R {input} {output.merged}
+        """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                Make Bed of Reproducible Peaks                ##
 ##################################################################
 
-"""
-The makeEulerOfOverlappingPeaks.R script makes a Euler plot showing the number
-of the merged peak sets overlapping with peaks in each of the replicates. In
-addition to an .pdf file, an .rds file with the Euler plot is generated that 
-can be read into R.
-"""
-rule make_euler_plot_of_overlaps_with_merged:
-    # Define the input file for the rule. This is the RDS file made in the report_peaks_overlapping_with_merged rule.
-    input:
-        f"results/mergedPeakOverlaps/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.rds",
-    # Define the output files for the rule. This includes an RDS file and a PDF file, both of which are stored in the "results/eulerPlot" directory.
-    output:
-        f"results/eulerPlot/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_eulerPlot.rds",
-        f"results/eulerPlot/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_eulerPlot.pdf",
-    # Define the parameters needed to create the Euler plot. These include font size, colors, width, and height.
-    params:
-        config["EulerFontSize"],
-        config["EulerColors"],
-        config["EulerWidth"],
-        config["EulerHeight"],
-    # Define the environment modules needed to run the R script that generates the Euler plot.
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    # Define the script used to generate the Euler plot. This is a custom R script located in the "scripts" directory.
-    script:
-        "scripts/makeEulerOfOverlappingPeaks.R"
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# Define a Snakemake rule to create a BED file of reproducible peaks.
-"""
-The make_bed_of_reproducible_peaks.R script takes as input the RDS file
-generated by the reportOverlappingPeaks.R script in the
-report_peaks_overlapping_with_merged rule. The RDS file is a genomic ranges
-object that contains all merged peaks and the overlaps with each of the
-replicate peak sets in the mcols attribute. The script reads in the input data
-and creates a BED file containing reproducible peaks. The minimum number of
-sample overlaps required to define a "reproducible peak" is specified by the
-config["minNumberOfSampleOverlaps"] parameter.
-"""
 rule make_bed_of_reproducible_peaks:
-    # Define the input file for the rule. This is a merged RDS file containing peaks filtered based on a minimum FDR cutoff.
     input:
-        f"results/mergedPeakOverlaps/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_peaks.rds",      
-    # Define the output file for the rule. This is a BED file containing reproducible peaks, stored in the "results/reproduciblePeaksBed" directory.
+        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     output:
-        f"results/reproduciblePeaksBed/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_reproduciblePeaks.bed",      
-    # Define the parameters needed to create the BED file of reproducible peaks. This includes the minimum number of sample overlaps.
+        consensus="results/consensusPeaks/{Set}_consensus_peaks.bed"
     params:
-        config["minNumberOfSampleOverlaps"],       
-    # Define the environment modules needed to run the R script that creates the BED file.
+        min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
-        config["R"],
-        config["Bioconductor"],       
-    # Define the script used to create the BED file of reproducible peaks. This is a custom R script located in the "scripts" directory.
-    script:
-        "scripts/make_bed_of_reproducible_peaks.R"
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make bed file of reproducible summits
-rule make_bed_of_reproducible_summits:
-    input:
-        peaks = f"results/reproduciblePeaksBed/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_reproduciblePeaks.bed",
-        summits = f"results/macs2_normalPeaks_merged/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_summits.bed",
-    output:
-        f"results/reproduciblePeaksSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_reproducibleSummits.bed",
-    params:
-        config["minNumberOfSampleOverlaps"],
-    envmodules:
-        config["bedops"],
+        config["R"]
     shell:
         """
-        sort-bed {input.summits} > {input.summits}_sorted.bed
-        sort-bed {input.peaks} > {input.peaks}_sorted.bed
-        bedops --element-of 1 {input.summits}_sorted.bed {input.peaks}_sorted.bed > {output}
+        Rscript scripts/generateConsensusPeaks.R {input.merged} {params.min_overlap} {output.consensus}
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##                 Create BAM from Consensus Peaks              ##
 ##################################################################
 
-## This rule should be modified in the future to accomodate scale factors calculated from spike-ins
-# make normalized bigwigs using bamcompare
-rule make_normalized_bigwigs_with_bamcompare:
+rule create_bam_from_consensus:
     input:
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-        bln=lambda wildcards: f"results/greyAndBlackLists/{samples_table.loc[samples_table['sample'] == wildcards.sample, 'set'].iloc[0]}_greyAndBlacklist.bed",
+        bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
     output:
-        "results/backgroundNormalizedBigwigs/{sample}_bkgrndNorm.bw",
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
     params:
-        sfm=config["scaleFactorsMethod"],
-        nmu=config["normalizeUsing"],
-        bco=config["bamcompareOperation"],
-        bns=config["binSize"],
-        egs=config["effective_genome_size"],
-        nop=config["numberOfProcessors"],
-        mfl=config["minFragmentLength"],
-        mxl=config["maxFragmentLength"],
-        mmq=config["minMappingQuality"],
-        sml=config["smoothLength"],
-        ign=config["ignoreForNormalization"],
+        genome_file="resources/hg38.chrom.sizes"  # Genome size file
     envmodules:
-        config["deeptools"],
+        config["bedtools"],
+        config["samtools"]
     shell:
         """
-        bamCompare --smoothLength {params.sml} --minFragmentLength {params.mfl} --ignoreForNormalization {params.ign} --maxFragmentLength {params.mxl} --minMappingQuality {params.mmq} --numberOfProcessors {params.nop} --effectiveGenomeSize {params.egs} --scaleFactorsMethod {params.sfm} --normalizeUsing {params.nmu} --operation {params.bco} --binSize {params.bns} --blackListFileName {input.bln} --centerReads --numberOfProcessors {params.nop} -b1 {input.tx_merged_bam} -b2 {input.in_merged_bam} -o {output}
+        bedtools bedtobam -i {input.bed} -g {params.genome_file} > {output.bam}
+        samtools index {output.bam}
         """
 
 ##################################################################
-##                      pipeline rules                          ##
+##               Create BigWig from Consensus Peaks             ##
 ##################################################################
 
-rule make_normalized_merged_bigwigs_with_bamcompare:
+rule create_bigwig_from_consensus:
     input:
-        tx_merged_bam = "results/mergedDownSampledBams/{sample}_tx.bam",
-        in_merged_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-        bln="results/greyAndBlackLists/{sample}_greyAndBlacklist.bed",
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
     output:
-        "results/mergedBackgroundNormalizedBigwigs/{sample}_bkgrndNorm.bw",
+        bigwig="results/consensusPeaks/{Set}_consensus_peaks.bw"
     params:
-        sfm=config["scaleFactorsMethod"],
-        nmu=config["normalizeUsing"],
-        bco=config["bamcompareOperation"],
-        bns=config["binSize"],
-        egs=config["effective_genome_size"],
-        nop=config["numberOfProcessors"],
-        mfl=config["minFragmentLength"],
-        mxl=config["maxFragmentLength"],
-        mmq=config["minMappingQuality"],
-        sml=config["smoothLength"],
-        ign=config["ignoreForNormalization"],
+        bin_size=config["binSize"],
+        genome_size=config["effective_genome_size"]
     envmodules:
-        config["deeptools"],
+        config["deeptools"]
     shell:
         """
-        bamCompare --smoothLength {params.sml} --minFragmentLength {params.mfl} --ignoreForNormalization {params.ign} --maxFragmentLength {params.mxl} --minMappingQuality {params.mmq} --numberOfProcessors {params.nop} --effectiveGenomeSize {params.egs} --scaleFactorsMethod {params.sfm} --normalizeUsing {params.nmu} --operation {params.bco} --binSize {params.bns} --blackListFileName {input.bln} --centerReads --numberOfProcessors {params.nop} -b1 {input.tx_merged_bam} -b2 {input.in_merged_bam} -o {output}
+        bamCoverage --bam {input.bam} --outFileName {output.bigwig} \
+        --binSize {params.bin_size} --effectiveGenomeSize {params.genome_size} --normalizeUsing CPM
         """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make coverage matrix across reproducible peak summits
-rule make_coverage_matrix_across_peaks:
-    # Input: reproducible peak summits BED file
-    input:
-        summits = f"results/reproduciblePeaksSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_reproducibleSummits.bed",
-        readsBigWigs=lambda wildcards: expand(
-            f"results/backgroundNormalizedBigwigs/{{sample}}_bkgrndNorm.bw",
-            sample=cf.filter_sample_by_set(wildcards.sample,samples_table)),
-    # Output: coverage matrix and compressed file
-    output:
-        mx = f"results/matrixOfReadsAcrossPeakSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_readCountsAcrossSummits.tab",
-        gz = f"results/matrixOfReadsAcrossPeakSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_readCountsAcrossSummits.gz",
-    # Parameters: bigWigs, region lengths, bin size, and number of processors
-    params:
-        readsBigWigs=lambda wildcards: expand(
-            f"results/backgroundNormalizedBigwigs/{{sample}}_bkgrndNorm.bw",
-            sample=cf.filter_sample_by_set(wildcards.sample,samples_table)),
-        brl=config["beforeRegionStartLength"],
-        arl=config["afterRegionStartLength"],
-        bns=config["binSize"],
-        nop=config["numberOfProcessors"],
-    # Environment: load required software modules
-    envmodules:
-        config["deeptools"],
-    # Shell command: computeMatrix to create coverage matrix across peak summits
-    shell:
-        """
-        computeMatrix reference-point --outFileName {output.gz} -a {params.arl} -b {params.brl} --numberOfProcessors {params.nop} --smartLabels --outFileNameMatrix {output.mx} -S {params.readsBigWigs} -R {input.summits}
-        """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make heat plots of coverage over reproducible peaks
-rule make_heatplot_of_reproducible_peaks:
-    # Input: coverage matrix across peak summits
-    input:
-        mx = f"results/matrixOfReadsAcrossPeakSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_readCountsAcrossSummits.tab",
-    # Output: RDS file and PDF of heat plot
-    output:
-        f"results/heatPlotOfReadsAcrossPeakSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_heatPlotAcrossPeakSummits.rds",
-        f"results/heatPlotOfReadsAcrossPeakSummits/{{sample}}_{str(config['macs2_minimum_FDR_cutoff'])}_{str(config['minNumberOfSampleOverlaps'])}_heatPlotAcrossPeakSummits.pdf",
-    # Parameters: color settings, breaks, and PDF dimensions
-    params:
-        config["colorsForHeatPlot"],
-        config["heatplotBreaks"],
-        config["pdfWidth"],
-        config["pdfHeight"],
-    # Environment: load required software modules
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    # Script: R script to generate heat plot
-    script:
-        "scripts/makeHeatPlot.R"
-
-
-### Broad Peaks
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# call broad peaks with macs2
-rule call_broad_peaks_with_macs2:
-    input:
-        tx_merged_bam = "results/mergedTechnicalReplicates/{sample}_tx.bam",
-        in_merged_bam = "results/mergedTechnicalReplicates/{sample}_in.bam",
-    output:
-        "results/macs2_broadPeaks/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.broadPeak"
-    params:
-        effective_genome_size=config["effective_genome_size"],
-        minimum_FDR_cutoff=str(config["macs2_minimum_FDR_cutoff"]),
-        sample_name="{sample}"
-    envmodules:
-        config["macs2"]
-    shell:
-        """
-        macs2 callpeak -t {input.tx_merged_bam} -c {input.in_merged_bam} -f BAMPE -g {params.effective_genome_size} -n {params.sample_name}_{params.minimum_FDR_cutoff} -q {params.minimum_FDR_cutoff} --outdir results/macs2_broadPeaks/ --broad
-        """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# call broad peaks with macs2 on merged bams
-rule call_broad_peaks_with_macs2_on_merged:
-    input:
-        tx_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_tx.bam",
-        in_merged_downsampled_bam = "results/mergedDownSampledBams/{sample}_in.bam",
-    output:
-        "results/macs2_broadPeaks_merged/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.broadPeak",
-    params:
-        effective_genome_size=config["effective_genome_size"],
-        minimum_FDR_cutoff=str(config["macs2_minimum_FDR_cutoff"]),
-        sample_name="{sample}"
-    envmodules:
-        config["macs2"]
-    shell:
-        """
-        macs2 callpeak -t {input.tx_merged_downsampled_bam} -c {input.in_merged_downsampled_bam} -f BAMPE -g {params.effective_genome_size} -n {params.sample_name}_{params.minimum_FDR_cutoff} -q {params.minimum_FDR_cutoff} --outdir results/macs2_broadPeaks_merged/ --broad
-        """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# get overlaps between peaks of merged sample and individual samples
-rule report_broadPeaks_overlapping_with_merged:
-    input:
-        "results/macs2_broadPeaks_merged/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.broadPeak",
-        "results/greyAndBlackLists/{sample}_greyAndBlacklist.bed",
-    output:
-        "results/mergedBroadPeakOverlaps/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.rds",
-    params:
-        ','.join(expand("results/macs2_broadPeaks/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.broadPeak", sample=set(samples_lst))),
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    script:
-        "scripts/reportOverlappingPeaks.R"
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make euler plot
-rule make_euler_plot_of_broadPeaks_overlaps_with_merged:
-    input:
-        "results/mergedBroadPeakOverlaps/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.rds",
-    output:
-        "results/eulerPlot/{sample}_BroadPeaks_" + str(config['macs2_minimum_FDR_cutoff']) + "_eulerPlot.rds",
-        "results/eulerPlot/{sample}_BroadPeaks_" + str(config['macs2_minimum_FDR_cutoff']) + "_eulerPlot.pdf",
-    params:
-        config["EulerFontSize"],
-        config["EulerColors"],
-        config["EulerWidth"],
-        config["EulerHeight"],
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    script:
-        "scripts/makeEulerOfOverlappingPeaks.R"
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make bed file of reproducible peaks
-rule make_bed_of_reproducible_broadPeaks:
-    input:
-        "results/mergedBroadPeakOverlaps/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_peaks.rds",
-    output:
-        "results/reproducibleBroadPeaksBed/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_reproduciblePeaks.bed",
-    params:
-        config["minNumberOfSampleOverlaps"],
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    script:
-        "scripts/make_bed_of_reproducible_peaks.R"
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make bed file of reproducible midpoints
-rule make_bed_of_reproducible_broadPeaks_midpoints:
-    input:
-        peaks = "results/reproducibleBroadPeaksBed/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_reproduciblePeaks.bed",
-    output:
-        "results/reproducibleBroadPeaksMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "reproducibleBroadPeaksMidpoints.bed",
-    shell:
-        """
-        awk -v OFS='\t' '{{print $1,int(($2+$3)/2), (int(($2+$3)/2)+1),$4,$5,$6,$7,$8,$9,$10,$11,$12}}' {input.peaks} | sed 's/\t\t//g' > {output}
-        """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make coverage matrix across reproducible peak midpoints
-rule make_coverage_matrix_across_broadPeaks_midpoints:
-    input:
-        summits = "results/reproducibleBroadPeaksMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "reproducibleBroadPeaksMidpoints.bed",
-    output:
-        mx = "results/matrixOfReadsAcrossBroadPeakMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_readCountsAcrossMidpoints.tab",
-        gz = "results/matrixOfReadsAcrossBroadPeakMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_readCountsAcrossMidpoints.gz",
-    params:
-        readsBigWigs = ' '.join(expand("results/backgroundNormalizedBigwigs/{sample}_bkgrndNorm.bw",sample=set(samples_lst))),
-        brl=config["beforeRegionStartLength"],
-        arl=config["afterRegionStartLength"],
-        bns=config["binSize"],
-        nop=config["numberOfProcessors"],
-    envmodules:
-        config["deeptools"],
-    shell:
-        """
-        computeMatrix reference-point --outFileName {output.gz} -a {params.arl} -b {params.brl} --numberOfProcessors {params.nop} --smartLabels --outFileNameMatrix {output.mx} -S {params.readsBigWigs} -R {input.summits}
-        """
-
-##################################################################
-##                      pipeline rules                          ##
-##################################################################
-
-# make heat plots of coverage over reproducible peaks
-rule make_heatplot_of_reproducible_broadPeaks:
-    input:
-        mx = "results/matrixOfReadsAcrossBroadPeakMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_readCountsAcrossMidpoints.tab",
-    output:
-        "results/heatPlotOfReadsAcrossBroadPeakMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_heatPlotAcrossMidpoints.rds",
-        "results/heatPlotOfReadsAcrossBroadPeakMidpoints/{sample}_" + str(config['macs2_minimum_FDR_cutoff']) + "_" + str(config['minNumberOfSampleOverlaps']) + "_heatPlotAcrossMidpoints.pdf",
-    params:
-        config["colorsForHeatPlot"],
-        config["heatplotBreaks"],
-        config["pdfWidth"],
-        config["pdfHeight"],
-    envmodules:
-        config["R"],
-        config["Bioconductor"],
-    script:
-        "scripts/makeHeatPlot.R"
