@@ -33,7 +33,8 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
-        expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"])))
+        expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
+        "results/overlaps/MidpointOverlaps.bed"
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
