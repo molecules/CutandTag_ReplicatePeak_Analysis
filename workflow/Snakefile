@@ -36,10 +36,10 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table['set']))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table['set'])))
 
-# Call peaks with MACS2
-rule call_peaks_with_macs2:
+# Call peaks with MACS2 for treatment samples
+rule call_peaks_with_macs2_treatment:
     input:
-        bam="resources/{sample}.bam"
+        bam=lambda wildcards: samples_table.loc[wildcards.sample, "bam"]
     output:
         peaks="results/macs2Peaks/{sample}_peaks.narrowPeak",
         summary="results/macs2Peaks/{sample}_macs2Peak_summary.txt"
@@ -48,6 +48,28 @@ rule call_peaks_with_macs2:
         qvalue=config["macs2_qvalue"],
         sample_name="{sample}",
         output_dir="results/macs2Peaks/"
+    envmodules:
+        "macs2"
+    shell:
+        """
+        macs2 callpeak -t {input.bam} \
+        -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
+        --outdir {params.output_dir} -q {params.qvalue} --keep-dup all --nomodel \
+        2>{params.output_dir}/{params.sample_name}_macs2Peak_summary.txt
+        """
+
+# Call peaks with MACS2 for control samples (if needed)
+rule call_peaks_with_macs2_control:
+    input:
+        bam=lambda wildcards: samples_table.loc[wildcards.sample, "bam"]
+    output:
+        peaks="results/macs2Peaks/control/{sample}_peaks.narrowPeak",
+        summary="results/macs2Peaks/control/{sample}_macs2Peak_summary.txt"
+    params:
+        genome=config["genome"],
+        qvalue=config["macs2_qvalue"],
+        sample_name="{sample}",
+        output_dir="results/macs2Peaks/control/"
     envmodules:
         "macs2"
     shell:
