@@ -58,24 +58,22 @@ rule call_peaks_with_macs2:
         """
 
 ##################################################################
-##                   Generate Consensus Peaks                   ##
+##                     Generate Merged Peaks                    ##
 ##################################################################
 
-rule generate_consensus_peaks:
+rule generate_merged_peaks:
     input:
-        peaks=lambda wildcards: expand(
+        lambda wildcards: expand(
             "results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
             sample=filter_sample_by_set(wildcards.Set, samples_table)
         )
     output:
-        consensus="results/consensusPeaks/{Set}_consensus_peaks.rds"
-    params:
-        script="scripts/generateConsensusPeaks.R"
+        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     envmodules:
         config["R"]
     shell:
         """
-        Rscript {params.script} {input.peaks} {output.consensus}
+        Rscript scripts/generateMergedPeaks.R {input} {output.merged}
         """
 
 ##################################################################
