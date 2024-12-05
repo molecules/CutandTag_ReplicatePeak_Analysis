@@ -4,4 +4,4 @@ Treatment_Rep2,resources/test1A.bam,Set1
 Treatment_Rep3,resources/test1B.bam,Set1
 Control_Rep1,resources/input1.bam,Set2
 Control_Rep2,resources/input1A.bam,Set2
-Control_Rep3,resources/input1B.bam,Set2
+Control_Rep3,resources/input2B.bam,Set2
