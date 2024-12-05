@@ -1,11 +1,10 @@
-# Author: Inistial Chris Sansam script modified by Kevin Boyd
+# generateConsensusPeaks.R
+# Author: Kevin Boyd (modified from an original by Chris Sansam)
 # Date Modified: 12/4/2024
-# Purpose: This script calculates the overlap between a merged peaks file 
-#          and a list of additional peak files, storing the overlap information 
-#          as metadata in the merged peaks object. The merged peaks object 
-#          is saved in RDS format as the output file.
+# Purpose: This script generates a consensus peaks file by calculating the overlap
+#          between a merged peaks file and a list of individual peak files. The
+#          resulting metadata is saved in an RDS file.
 
-# Load necessary packages
 library(magrittr)
 library(GenomicRanges)
 library(stringr)
