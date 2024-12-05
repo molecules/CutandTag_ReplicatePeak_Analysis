@@ -1,9 +1,9 @@
-# Author: Inistial Chris Sansam script modified by Kevin Boyd
+# filterConsensusPeaks.R
+# Author: Kevin Boyd (modified from an original by Chris Sansam)
 # Date Modified: 12/4/2024
-# Purpose: This script calculates the overlap between a merged peaks file 
-#          and a list of additional peak files, storing the overlap information 
-#          as metadata in the merged peaks object. The merged peaks object 
-#          is saved in RDS format as the output file.
+# Purpose: This script filters consensus peaks based on the minimum overlap count.
+#          The input is an RDS file containing merged peaks with overlap metadata,
+#          and the output is a BED file containing the filtered consensus peaks.
 
 library(magrittr)
 library(GenomicRanges)
