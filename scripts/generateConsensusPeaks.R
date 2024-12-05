@@ -8,10 +8,11 @@
 library(magrittr)
 library(GenomicRanges)
 
-# Get input and output files and minimum overlap parameter
-input <- snakemake@input[[1]] # Input RDS file with metadata
-output <- snakemake@output[[1]] # Output BED file
-min <- as.numeric(snakemake@params[[1]]) # Minimum overlap threshold
+# Capture command-line arguments
+args <- commandArgs(trailingOnly = TRUE)
+input <- args[-c(length(args) - 1, length(args))]    # All but last two arguments are input files
+min <- args[length(args) - 1]                        # Second-to-last argument is the BAM directory
+output <- args[length(args)]                         # Last argument is the output directory
 
 # Read in the RDS file with metadata
 gr <- readRDS(input)
