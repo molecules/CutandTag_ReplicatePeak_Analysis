@@ -28,7 +28,7 @@ def filter_sample_by_set(Set, samples_table):
 rule all:
     input:
         # Ensure BAM and BigWig files for consensus peaks are created
-        expand("results/macs2Peaks/{sample}_peaks.narrowPeak", sample=samples_table.index),
+        expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
 
@@ -40,7 +40,7 @@ rule call_peaks_with_macs2_treatment:
     input:
         bam=lambda wildcards: samples_table.loc[wildcards.sample, "bam"]
     output:
-        peaks="results/macs2Peaks/{sample}_peaks.narrowPeak",
+        peaks="results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
         summary="results/macs2Peaks/{sample}_macs2Peak_summary.txt"
     params:
         genome=config["genome"],
