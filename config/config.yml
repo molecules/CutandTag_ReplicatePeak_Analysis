@@ -1,30 +1,34 @@
-# samples file
+## samples file
 samples_csv: "config/samples.csv"
 
-# genome-of-interest
+## genome-of-interest
 genome: "hs"
-BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"
+# For human genome - "hs" / for mouse genome - "mm"
+BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"   
 
-# effective genome size
+## effective genome size
 effective_genome_size: 2913022398
+# mm10 genome size - 2730871774       
+# GRCh38 genome size - 2913022398
 
-# macs2 options
+## macs2 options
 macs2_qvalue: 0.05
 minNumberOfSampleOverlaps: 2
 
-# bamCoverage options
+## bamCoverage options
 binSize: 50
 
-# bedtobam
+## bedtobam
 chrom_sizes: "resources/hg38.chrom.sizes"
+# For human - "resources/hg38.chrom.sizes" / for mouse - "resources/mm10.chrom.sizes"
 
-# Euler plot parameters
+## Euler plot parameters
 EulerFontSize: 8                # Base font size for the Euler plot
 EulerColors: "red,green,blue"   # Comma-separated colors for the plot
 EulerWidth: 5                   # Width of the PDF plot in inches
 EulerHeight: 5                  # Height of the PDF plot in inches
 
-# environment modules
+## environment modules
 deeptools: "deeptools/3.4.3"
 macs2: "macs2/2.2.7.1"
 samtools: "samtools/1.14"
