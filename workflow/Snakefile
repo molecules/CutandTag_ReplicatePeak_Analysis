@@ -74,7 +74,7 @@ rule generate_consensus_peaks:
     envmodules:
         config["R"]
     script:
-        "scripts/reportOverlappingPeaks.R"
+        "scripts/generateConsensusPeaks.R"
 
 ##################################################################
 ##            Filter Consensus Peaks to BED Format              ##
@@ -90,7 +90,7 @@ rule make_bed_of_reproducible_peaks:
     envmodules:
         config["R"]
     script:
-        "scripts/make_bed_of_reproducible_peaks.R"
+        "scripts/filterConsensusPeaks.R"
 
 ##################################################################
 ##                 Create BAM from Consensus Peaks              ##
