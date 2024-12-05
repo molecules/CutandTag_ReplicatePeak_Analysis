@@ -13,7 +13,7 @@ input_beds <- args[-length(args)]  # All but the last argument are input BED fil
 output_prefix <- args[length(args)]  # The last argument is the output prefix
 
 # Load BED files
-Beds.df <- lapply(input_beds, read.table)
+Beds.df <- lapply(input_beds, read.table, header = FALSE)
 
 # Create genomic ranges objects and reduce them
 Beds.gr <- lapply(Beds.df, GenomicRanges::makeGRangesFromDataFrame, 
@@ -24,7 +24,7 @@ AllBeds.gr <- GenomicRanges::reduce(do.call("c", Beds.gr))
 peakOverlaps <- lapply(Beds.gr, function(gr) { AllBeds.gr %over% gr }) %>% 
   do.call(cbind, .) %>% 
   as.data.frame() %>% 
-  set_names(gsub("_0.05.*", "", basename(input_beds))) %>% 
+  set_names(gsub("_consensus_peaks.bed", "", basename(input_beds))) %>% 
   {mcols(AllBeds.gr) <- .; AllBeds.gr}
 
 # Calculate midpoints for overlaps
