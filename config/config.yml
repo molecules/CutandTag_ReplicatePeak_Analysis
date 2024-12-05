@@ -15,6 +15,12 @@ minNumberOfSampleOverlaps: 2
 # bamCoverage options
 binSize: 50
 
+# Euler plot parameters
+EulerFontSize: 8                # Base font size for the Euler plot
+EulerColors: "red,green,blue"   # Comma-separated colors for the plot
+EulerWidth: 5                   # Width of the PDF plot in inches
+EulerHeight: 5                  # Height of the PDF plot in inches
+
 # environment modules
 deeptools: "deeptools/3.4.3"
 macs2: "macs2/2.2.7.1"
