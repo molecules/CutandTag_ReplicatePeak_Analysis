@@ -107,7 +107,7 @@ rule create_bam_from_consensus:
     output:
         bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
     params:
-        genome_file="resources/hg38.chrom.sizes"  # Genome size file
+        genome_file=config["chrom_sizes"]
     envmodules:
         config["bedtools"],
         config["samtools"]
