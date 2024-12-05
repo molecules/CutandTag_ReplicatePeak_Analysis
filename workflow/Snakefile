@@ -28,7 +28,7 @@ def filter_sample_by_set(Set, samples_table):
 rule all:
     input:
         # Ensure BAM and BigWig files for consensus peaks are created
-        expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
+        expand("results/macs2Peaks/{sample}_peaks.narrowPeak", sample=samples_table.index),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
 
@@ -36,11 +36,11 @@ rule all:
 ##                        MACS2 Peak Calling                    ##
 ##################################################################
 
-rule call_peaks_with_macs2_treatment:
+rule call_peaks_with_macs2:
     input:
         bam=lambda wildcards: samples_table.loc[wildcards.sample, "bam"]
     output:
-        peaks="results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
+        peaks="results/macs2Peaks/{sample}_peaks.narrowPeak",
         summary="results/macs2Peaks/{sample}_macs2Peak_summary.txt"
     params:
         genome=config["genome"],
@@ -52,7 +52,7 @@ rule call_peaks_with_macs2_treatment:
     shell:
         """
         macs2 callpeak -t {input.bam} \
-        -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
+        -g {params.genome} -f BAMPE -n {params.sample_name} \
         --outdir {params.output_dir} -q {params.qvalue} --keep-dup all --nomodel \
         2>{params.output_dir}/{params.sample_name}_macs2Peak_summary.txt
         """
