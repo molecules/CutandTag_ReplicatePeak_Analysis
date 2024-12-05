@@ -9,10 +9,11 @@ library(magrittr)
 library(GenomicRanges)
 library(stringr)
 
-# Get input and output files and parameter
-merged_peaks_file <- snakemake@input[[1]] # Input merged peaks file
-output <- snakemake@output[[1]] # Output file
-peak_files_input <- snakemake@params[[1]] # Input peak files parameter
+# Capture command-line arguments
+args <- commandArgs(trailingOnly = TRUE)
+merged_peaks_file <- args[-c(length(args) - 1, length(args))]  # All but last two arguments are input files
+peak_files_input <- args[length(args) - 1]                        # Second-to-last argument is the BAM directory
+output <- args[length(args)]                         # Last argument is the output directory
 
 # Read in merged peaks file and convert to GRanges object
 merged_peaks <- merged_peaks_file %>%
