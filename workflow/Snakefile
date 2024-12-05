@@ -63,10 +63,10 @@ rule call_peaks_with_macs2:
 
 rule generate_consensus_peaks:
     input:
-        lambda wildcards: expand(
-            "results/macs2Peaks/{sample}_peaks.narrowPeak",
-            sample=filter_sample_by_set(wildcards.Set, samples_table)
-        )
+        lambda wildcards: [
+            f"results/macs2Peaks/{sample}_0.05_peaks.narrowPeak"
+            for sample in filter_sample_by_set(wildcards.Set, samples_table)
+        ]
     output:
         consensus="results/consensusPeaks/{Set}_consensus_peaks.rds"
     params:
