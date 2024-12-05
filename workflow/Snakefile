@@ -63,19 +63,18 @@ rule call_peaks_with_macs2:
 
 rule generate_consensus_peaks:
     input:
-        lambda wildcards: [
-            f"results/macs2Peaks/{sample}_0.05_peaks.narrowPeak"
-            for sample in filter_sample_by_set(wildcards.Set, samples_table)
-        ]
+        merged_peaks="results/macs2Peaks/{Set}_merged_peaks.narrowPeak",  # Merged peaks file
+        individual_peaks=lambda wildcards: expand(
+            "results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
+            sample=filter_sample_by_set(wildcards.Set, samples_table)
+        )
     output:
         consensus="results/consensusPeaks/{Set}_consensus_peaks.rds"
-    params:
-        min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
         config["R"]
     shell:
         """
-        Rscript scripts/generateConsensusPeaks.R
+        Rscript scripts/generateConsensusPeaks.R {input.merged_peaks} {input.individual_peaks} {output.consensus}
         """
 
 ##################################################################
