@@ -83,15 +83,17 @@ rule generate_merged_peaks:
 
 rule make_bed_of_reproducible_peaks:
     input:
-        "results/consensusPeaks/{Set}_consensus_peaks.rds"
+        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     output:
-        "results/consensusPeaks/{Set}_consensus_peaks.bed"
+        consensus="results/consensusPeaks/{Set}_consensus_peaks.bed"
     params:
         min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
         config["R"]
     script:
-        "scripts/filterConsensusPeaks.R"
+        """
+        Rscript scripts/generateConsensusPeaks.R {input.merged} {params.min_overlap} {output.consensus}
+        """
 
 ##################################################################
 ##                 Create BAM from Consensus Peaks              ##
