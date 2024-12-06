@@ -10,7 +10,12 @@ library(rtracklayer)
 # Capture command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
 input_beds <- args[-length(args)]  # All but the last argument are input BED files
-output_prefix <- args[length(args)]  # The last argument is the output prefix
+output_dir <- args[length(args)]  # The last argument is the output directory
+
+# Ensure the output directory ends with a slash
+if (!grepl("/$", output_dir)) {
+    output_dir <- paste0(output_dir, "/")
+}
 
 # Load BED files
 Beds.df <- lapply(input_beds, read.table, header = FALSE)
@@ -32,6 +37,6 @@ midpointOverlaps <- peakOverlaps %>%
   {start(.) <- rowMeans(cbind(start(.), end(.))); . } %>%
   {end(.) <- start(.) + 1; .}
 
-# Export results
-export.bed(midpointOverlaps, paste0(output_prefix, "_MidpointOverlaps.bed"))
-export.bed(peakOverlaps, paste0(output_prefix, "_PeakOverlaps.bed"))
+# Export results to the output directory
+export.bed(midpointOverlaps, paste0(output_dir, "MidpointOverlaps.bed"))
+export.bed(peakOverlaps, paste0(output_dir, "PeakOverlaps.bed"))
