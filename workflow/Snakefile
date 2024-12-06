@@ -92,7 +92,8 @@ rule make_bed_of_reproducible_peaks:
     params:
         min_overlap=config["minNumberOfSampleOverlaps"]
     envmodules:
-        config["R"]
+        config["R"],
+        config["bioconductor"]
     shell:
         """
         Rscript scripts/generateConsensusPeaks.R {input.merged} {params.min_overlap} {output.consensus}
@@ -179,6 +180,7 @@ rule midpoint_and_peak_overlaps:
         output_prefix="results/overlaps/Overlaps"
     envmodules:
         config["R"]
+        config["bioconductor"]
     shell:
         """
         Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.output_prefix}
