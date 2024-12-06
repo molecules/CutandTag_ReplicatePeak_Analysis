@@ -74,7 +74,8 @@ rule generate_merged_peaks:
     output:
         merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     envmodules:
-        config["R"]
+        config["R"],
+        config["bioconductor"]
     shell:
         """
         Rscript scripts/generateMergedPeaks.R {input} {output.merged}
