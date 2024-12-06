@@ -177,12 +177,12 @@ rule midpoint_and_peak_overlaps:
         midpoint="results/overlaps/MidpointOverlaps.bed",
         peak="results/overlaps/PeakOverlaps.bed"
     params:
-        # Prefix for output files
-        output_prefix="results/overlaps/All_Sample"
+        out_dir="results/overlaps/"
     envmodules:
         config["R"],
         config["bioconductor"]
     shell:
         """
-        Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.output_prefix}
+        Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.out_dir}
         """
+
