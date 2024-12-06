@@ -34,7 +34,7 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
-        "results/overlaps/MidpointOverlaps.bed"
+        "results/overlaps/All_Sample_MidpointOverlaps.bed"
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
@@ -178,7 +178,7 @@ rule midpoint_and_peak_overlaps:
         peak="results/overlaps/PeakOverlaps.bed"
     params:
         # Prefix for output files
-        output_prefix="results/overlaps/Overlaps"
+        output_prefix="results/overlaps/All_Sample"
     envmodules:
         config["R"],
         config["bioconductor"]
