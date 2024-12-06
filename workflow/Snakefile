@@ -179,7 +179,7 @@ rule midpoint_and_peak_overlaps:
         # Prefix for output files
         output_prefix="results/overlaps/Overlaps"
     envmodules:
-        config["R"]
+        config["R"],
         config["bioconductor"]
     shell:
         """
