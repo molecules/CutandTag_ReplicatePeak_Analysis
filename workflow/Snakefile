@@ -213,7 +213,8 @@ rule generate_heatmap:
         processors=8,
         xAxisLabel="Center",   # Update x-axis label
         regionsLabel="Midpoints",  # Update region label
-        sampleLabelRotation=45     # Rotate sample labels by 45 degrees
+        sampleLabelRotation=45,     # Rotate sample labels by 45 degrees
+        sampleNames="{Set}"
     envmodules:
         config["deeptools"]
     shell:
@@ -233,5 +234,6 @@ rule generate_heatmap:
             --sortUsing sum \
             --xAxisLabel "{params.xAxisLabel}" \
             --regionsLabel "{params.regionsLabel}" \
-            --sampleLabelRotation {params.sampleLabelRotation}
+            --labelRotation {params.sampleLabelRotation} \
+            --samplesLabel {params.sampleNames}
         """
