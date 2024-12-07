@@ -211,7 +211,7 @@ rule generate_heatmap:
         before_region=3000,
         after_region=3000,
         processors=8,
-        xAxisLabel="Peak Center",   # Update x-axis label
+        xAxisLabel="Center",   # Update x-axis label
         regionsLabel="Midpoints",  # Update region label
         sampleLabelRotation=45     # Rotate sample labels by 45 degrees
     envmodules:
