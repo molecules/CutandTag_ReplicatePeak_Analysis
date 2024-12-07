@@ -35,6 +35,7 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
+        "results/heatmap/Beds_All_Samples.gz",
         "results/heatmap/HeatPlots_All_Samples.png"
 
 ##################################################################
