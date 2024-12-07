@@ -210,7 +210,10 @@ rule generate_heatmap:
         # Extend regions before and after the midpoint
         before_region=3000,
         after_region=3000,
-        processors=8
+        processors=8,
+        xAxisLabel="Peak Center",   # Update x-axis label
+        regionsLabel="Midpoints",  # Update region label
+        sampleLabelRotation=45     # Rotate sample labels by 45 degrees
     envmodules:
         config["deeptools"]
     shell:
@@ -226,5 +229,9 @@ rule generate_heatmap:
         plotHeatmap \
             -m {output.matrix} \
             -out {output.heatmap} \
-            --dpi 1000
+            --dpi 1000 \
+            --sortUsing sum \
+            --xAxisLabel "{params.xAxisLabel}" \
+            --regionsLabel "{params.regionsLabel}" \
+            --sampleLabelRotation {params.sampleLabelRotation}
         """
