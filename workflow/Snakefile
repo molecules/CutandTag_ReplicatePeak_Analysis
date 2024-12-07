@@ -212,8 +212,8 @@ rule generate_heatmap:
         before_region=3000,
         after_region=3000,
         processors=8,
-        startLabel="Center",
-        regionsLabel="Midpoints",
+        refPointName="Center",
+        regionsName="Midpoints",
         sampleNames=lambda wildcards: ",".join(list(set(samples_table["set"])))
     envmodules:
         config["deeptools"]
@@ -232,7 +232,7 @@ rule generate_heatmap:
             -out {output.heatmap} \
             --dpi 1000 \
             --sortUsing sum \
-            --startLabel "{params.startLabel}" \
-            --regionsLabel "{params.regionsLabel}" \
+            --refPointLabel "{params.refPointName}" \
+            --regionsLabel "{params.regionsName}" \
             --samplesLabel {params.sampleNames}
         """
