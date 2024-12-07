@@ -109,7 +109,8 @@ rule create_bam_from_consensus:
     input:
         bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
     output:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam",
+        sorted_bed="results/consensusPeaks/{Set}_consensus_peaks_sorted.bed"
     params:
         genome_file=config["chrom_sizes"]
     envmodules:
@@ -117,7 +118,11 @@ rule create_bam_from_consensus:
         config["samtools"]
     shell:
         """
-        bedtools bedtobam -i {input.bed} -g {params.genome_file} > {output.bam}
+        # Ensure the BED file is sorted
+        bedtools sort -i {input.bed} > {output.sorted_bed}
+
+        # Convert the sorted BED file to BAM and index it
+        bedtools bedtobam -i {output.sorted_bed} -g {params.genome_file} > {output.bam}
         samtools index {output.bam}
         """
 
