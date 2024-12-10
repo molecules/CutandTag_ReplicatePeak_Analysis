@@ -48,7 +48,7 @@ All parameters (e.g., genome size, MACS2 q-values, minimum number of overlapping
 The `config.yml` file controls genome settings, tool versions, and other workflow parameters.
 
 ## Changing Genomes
-- By default, the config.yml is set up for hs (human hg38). Running mouse (mm10) samples requires changing these values to match the mm10 parameters, which are already provided in `config.yml` as comments.
+By default, the config.yml is set up for hs (human hg38). Running mouse (mm10) samples requires changing these values to match the mm10 parameters, which are already provided in `config.yml` as comments.
 
 To switch from mm10 to hg38 (or vice versa), you’ll need to change:
 - **Genome and Effective Genome Size**:
