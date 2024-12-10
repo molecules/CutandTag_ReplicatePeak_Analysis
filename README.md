@@ -27,16 +27,68 @@ CutAndTag_ReplicatePeak_Analysis is a Snakemake pipeline designed to perform dow
 + Heatmaps for Signal Distribution:
     + By using consensus peak midpoints, the pipeline generates heatmaps that visualize aggregated signal (coverage) patterns. These heatmaps provide insights into the intensity and distribution of signal across multiple conditions or sample sets.
 
-## Intended Use Case
+# 2) Intended Use Case
 This pipeline is ideal for researchers who have already processed their Cut-and-Tag data through preliminary steps such as quality control, alignment, and filtering (e.g., by using [CutandTag_Analysis_Snakemake](https://github.com/JK-Cobre-Help/CutandTag_Analysis_Snakemake)). After obtaining high-quality aligned BAM files, you can use CutAndTag_ReplicatePeak_Analysis to:
 
-1. Identify reproducible peaks across replicates or experimental conditions.
-2. Generate integrative visual summaries of peak overlaps.
-3. Compare signal intensity profiles around consensus peak midpoints.
-4. By integrating this two-step approach, you ensure a robust, end-to-end workflow for your Cut-and-Tag sequencing experiments.
++ Identify reproducible peaks across replicates or experimental conditions.
++ Generate integrative visual summaries of peak overlaps.
++ Compare signal intensity profiles around consensus peak midpoints.
+
+By integrating this two-step approach, you ensure a robust, end-to-end workflow for your Cut-and-Tag sequencing experiments.
+
+# 3) Dependencies and Configuration
+Configuration:
+All parameters (e.g., genome size, MACS2 q-values, minimum number of overlapping samples for consensus peaks, paths to executables) are controlled via the config/config.yml file.
+## Explanation of config.yml
+Note. Make sure to check config.yml for the appropriate genome alignment
+
+The config.yml is used to... specify effective genome size and genome for macs2. There is also information about specific modules and version numbers to maintain dependencies in the snakemake workflow. Running the mm10 genome does not require any modifications to the config.yml. When using the hg38 genome the following need to be modified with the information provided in the config.yml but commented out.
+
+Run hg38 samples in snakemake pipeline
+- config.yml 
+    + change bowtie2 genome index file path
+    + change bamCoverage effective genome size
+    + change macs2 genome size
 
 
-# 2) Instructions to run on Slurm managed HPC
+# 4) Tools & Modules:
+The pipeline relies on a series of bioinformatics tools, including:
+
++ MACS2 for peak calling
++ bedtools and samtools for peak and alignment format conversions
++ deeptools for coverage and matrix computation, as well as for generating heatmaps
++ R with Bioconductor packages for merging peaks, generating consensus sets, and creating Euler diagrams
+
+# 5) Example Data
+A compact, pre-processed dataset is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization.
+
+## Relationship to Previous Protocols
+This pipeline builds on the framework originally described in CutandTag_Analysis_Snakemake, which was designed to process raw FASTQ files. In contrast, CutAndTag_ReplicatePeak_Analysis focuses on downstream analysis steps, taking already processed and aligned data to produce detailed consensus peak sets and visual summaries, thus facilitating more advanced and reproducible analyses.
+
+
+# 6) Explanation of samples.csv
+Note. Make sure to check sample.csv before each run
+
+The samples.csv file in the config folder has paths to the test fastq files. You must replace those paths with those for your own fastq files. The first column of each row is the sample name. This name will be used for all output files. Columns 2 and 3 are the paths to the paired fastq files. Column 4 is the sample type (either "treatment" or "control"). Column 5 is the name of the corresponding Control sample for each treated sample (use "NA" if the sample is a control).
+
+| sample             | fastq1                        | fastq2                        | sampleType | Control   |
+|--------------------|-------------------------------|-------------------------------|------------|-----------|
+| K27ac_50_trimmed   | K27ac_50_trimmed_R1.fastq.gz  | K27ac_50_trimmed_R2.fastq.gz  | control    | NA        |
+| K27me3_50_trimmed  | K27me3_50_trimmed_R1.fastq.gz | K27me3_50_trimmed_R1.fastq.gz | control    | NA        |
+
+
+Sample naming recommendation for correct plot output
+- "Histone" + "_" + "Replicate" + "Any other identifier"
+- Examples:
+    + K27ac_50
+    + K27me3_5
+    + K27ac_50_trimmed
+    + H3K27me3_rep1
+    + H3K4me3_rep2_set1
+    + H3K27ac_rep3_control
+    + H3K27ac_rep3_treatment
+
+# 7) Instructions to run on Slurm managed HPC
 2A. Clone repository
 ```
 git clone https://github.com/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis.git
@@ -60,38 +112,3 @@ snakemake -npr
 sbatch --wrap="snakemake -j 999 --use-envmodules --latency-wait 60 --cluster-config config/cluster_config.yml --cluster 'sbatch -A {cluster.account} -p {cluster.partition} --cpus-per-task {cluster.cpus-per-task}  -t {cluster.time} --mem {cluster.mem} --output {cluster.output}'"
 ```
 
-# 3) Explanation of samples.csv
-Note. Make sure to check sample.csv before each run
-
-The samples.csv file in the config folder has paths to the test fastq files. You must replace those paths with those for your own fastq files. The first column of each row is the sample name. This name will be used for all output files. Columns 2 and 3 are the paths to the paired fastq files. Column 4 is the sample type (either "treatment" or "control"). Column 5 is the name of the corresponding Control sample for each treated sample (use "NA" if the sample is a control).
-
-| sample             | fastq1                        | fastq2                        | sampleType | Control   |
-|--------------------|-------------------------------|-------------------------------|------------|-----------|
-| K27ac_50_trimmed   | K27ac_50_trimmed_R1.fastq.gz  | K27ac_50_trimmed_R2.fastq.gz  | control    | NA        |
-| K27me3_50_trimmed  | K27me3_50_trimmed_R1.fastq.gz | K27me3_50_trimmed_R1.fastq.gz | control    | NA        |
-
-
-Sample naming recommendation for correct plot output
-- "Histone" + "_" + "Replicate" + "Any other identifier"
-- Examples:
-    + K27ac_50
-    + K27me3_5
-    + K27ac_50_trimmed
-    + H3K27me3_rep1
-    + H3K4me3_rep2_set1
-    + H3K27ac_rep3_control
-    + H3K27ac_rep3_treatment
-
-# 4) Explanation of config.yml
-Note. Make sure to check config.yml for the appropriate genome alignment
-
-The config.yml is used to identify the file path of the bowtie2 genome index, specify effective genome size and genome for macs2. There is also information about specific modules and version numbers to maintain dependencies in the snakemake workflow. Running the mm10 genome does not require any modifications to the config.yml. When using the hg38 genome the following need to be modified with the information provided in the config.yml but commented out.
-
-Run hg38 samples in snakemake pipeline
-- config.yml 
-    + change bowtie2 genome index file path
-    + change bamCoverage effective genome size
-    + change macs2 genome size
-
-# 5) Citations
-Zheng, Y., Ahmad, K., & Henikoff, S. (2019). CUT&Tag for efficient epigenomic profiling of small samples and single cells. Protocols.io, dx.doi.org/10.17504/protocols.io.bjk2kkye
