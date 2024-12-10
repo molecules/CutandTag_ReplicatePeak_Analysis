@@ -233,6 +233,6 @@ rule generate_heatmap:
             --dpi 1000 \
             --sortUsing sum \
             --refPointLabel "{params.refPointName}" \
-            --regionsLabel "{params.regionsName}" \
-            --samplesLabel {params.sampleNames}
+            --regionsLabel "{params.regionsName}"
+            #--samplesLabel {params.sampleNames}
         """
