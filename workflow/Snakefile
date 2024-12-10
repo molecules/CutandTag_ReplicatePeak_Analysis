@@ -1,5 +1,9 @@
 configfile: "config/config.yml"
 
+# Author: Kevin Boyd
+# Date: Dec 3, 2024
+# Adapted scripts from: https://github.com/SansamLab-Pipelines-Genomics/ReplicatePeakAnalyzer
+
 ##################################################################
 ##                    Define input functions                    ##
 ##################################################################
