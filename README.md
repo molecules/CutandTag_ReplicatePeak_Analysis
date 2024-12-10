@@ -66,7 +66,7 @@ All information required for switching between hg38 and mm10 is included in conf
 Tool Versions and Modules
 The `config.yml` file also specifies versions of tools and modules (e.g., deeptools, macs2, samtools, bedtools, R) used by the pipeline. These versions help maintain reproducibility and ensure that the pipeline runs consistently across different computing environments.
 
-# 4) Tools & Modules:
+# 4) Tools & Modules
 The pipeline relies on bioinformatics tools, including:
 
 - **MACS2** for peak calling
