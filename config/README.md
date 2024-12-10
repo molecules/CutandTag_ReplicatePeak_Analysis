@@ -99,3 +99,17 @@ Treatment_Rep3,resources/test1B.bam,Set1
 Control_Rep1,resources/input1.bam,Set2
 Control_Rep2,resources/input1A.bam,Set2
 Control_Rep3,resources/input2B.bam,Set2
+```
+
+**sample:** Unique sample name (used in output filenames)  
+**bam:** Path to the aligned BAM file  
+**set:** Sample grouping for consensus peak analysis
+
+Choose descriptive sample names for clarity in outputs and plots.
+
+## 7) Instructions to Run on a Slurm-Managed HPC
+
+**Step A: Clone the repository**
+```bash
+git clone https://github.com/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis.git
+
