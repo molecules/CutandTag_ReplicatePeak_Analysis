@@ -52,8 +52,8 @@ The `config.yml` file controls genome settings, tool versions, and other workflo
 
 To switch from mm10 to hg38 (or vice versa), you’ll need to change:
 - **Genome and Effective Genome Size**:
-  For human (hg38), set `genome: "hs"` and `effective_genome_size: 2913022398`
-  For mouse (mm10), set `genome: "mm"` and `effective_genome_size: 2730871774`
+  - For human (hg38), set `genome: "hs"` and `effective_genome_size: 2913022398`
+  - For mouse (mm10), set `genome: "mm"` and `effective_genome_size: 2730871774`
 
 - Update the chrom_sizes File:
   Point chrom_sizes to the correct chromosome sizes file, such as `resources/hg38.chrom.sizes` for hg38 or `resources/mm10.chrom.sizes` for mm10.
