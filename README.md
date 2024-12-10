@@ -18,22 +18,24 @@ CutAndTag_ReplicatePeak_Analysis is a Snakemake pipeline designed to perform dow
 + Consensus Peak Conversion:
     + Consensus peak sets are converted into BAM and BigWig formats, enabling efficient genome browser visualization and facilitating downstream analyses.
 
-Euler Plots of Overlaps:
-The pipeline creates Euler diagrams to represent the overlap of peaks among individual samples within a set. This visual approach reveals how consensus peaks emerge from the intersection of multiple replicates.
++ Euler Plots of Overlaps:
+    + The pipeline creates Euler diagrams to represent the overlap of peaks among individual samples within a set. This visual approach reveals how consensus peaks emerge from the intersection of multiple replicates.
 
-Midpoint and Overlap Analysis:
-The pipeline identifies peak midpoints and quantifies overlaps, enabling a more granular exploration of peak distribution and subtle differences or similarities across samples.
++ Midpoint and Overlap Analysis:
+    + The pipeline identifies peak midpoints and quantifies overlaps, enabling a more granular exploration of peak distribution and subtle differences or similarities across samples.
 
-Heatmaps for Signal Distribution:
-By using consensus peak midpoints, the pipeline generates heatmaps that visualize aggregated signal (coverage) patterns. These heatmaps provide insights into the intensity and distribution of signal across multiple conditions or sample sets.
++ Heatmaps for Signal Distribution:
+    + By using consensus peak midpoints, the pipeline generates heatmaps that visualize aggregated signal (coverage) patterns. These heatmaps provide insights into the intensity and distribution of signal across multiple conditions or sample sets.
 
-Intended Use Case
-This pipeline is ideal for researchers who have already processed their Cut-and-Tag data through preliminary steps such as quality control, trimming, alignment, and filtering (e.g., by using CutandTag_Analysis_Snakemake). After obtaining high-quality aligned BAM files, you can use CutAndTag_ReplicatePeak_Analysis to:
+## Intended Use Case
+This pipeline is ideal for researchers who have already processed their Cut-and-Tag data through preliminary steps such as quality control, alignment, and filtering (e.g., by using [CutandTag_Analysis_Snakemake](https://github.com/JK-Cobre-Help/CutandTag_Analysis_Snakemake)). After obtaining high-quality aligned BAM files, you can use CutAndTag_ReplicatePeak_Analysis to:
 
-Identify reproducible peaks across replicates or experimental conditions.
-Generate integrative visual summaries of peak overlaps.
-Compare signal intensity profiles around consensus peak midpoints.
-By integrating this two-step approach, you ensure a robust, end-to-end workflow for your Cut-and-Tag sequencing experiments.
++ Identify reproducible peaks across replicates or experimental conditions.
++ Generate integrative visual summaries of peak overlaps.
++ Compare signal intensity profiles around consensus peak midpoints.
++ By integrating this two-step approach, you ensure a robust, end-to-end workflow for your Cut-and-Tag sequencing experiments.
+
+
 # 2) Instructions to run on Slurm managed HPC
 2A. Clone repository
 ```
