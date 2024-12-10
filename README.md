@@ -40,16 +40,33 @@ By integrating this two-step approach, you ensure a robust, end-to-end workflow 
 Configuration:
 All parameters (e.g., genome size, MACS2 q-values, minimum number of overlapping samples for consensus peaks, paths to executables) are controlled via the config/config.yml file.
 ## Explanation of config.yml
-Note. Make sure to check config.yml for the appropriate genome alignment
+    + Note. Make sure to check config.yml for the appropriate genome alignment
 
-The config.yml is used to... specify effective genome size and genome for macs2. There is also information about specific modules and version numbers to maintain dependencies in the snakemake workflow. Running the mm10 genome does not require any modifications to the config.yml. When using the hg38 genome the following need to be modified with the information provided in the config.yml but commented out.
+The config.yml file in this repository controls most of the parameters and references used by the pipeline, including genome settings, tool versions, and other workflow parameters.
 
-Run hg38 samples in snakemake pipeline
-- config.yml 
-    + change bowtie2 genome index file path
-    + change bamCoverage effective genome size
-    + change macs2 genome size
+Genome and Effective Genome Size
+The pipeline uses the genome and effective_genome_size parameters to configure tools like macs2 and deeptools for your organism of interest. For instance:
 
+For human (hg38), set genome: "hs" and effective_genome_size: 2913022398.
+For mouse (mm10), set genome: "mm" and effective_genome_size: 2730871774.
+By default, the config.yml is set up for hs (human hg38). Running mouse (mm10) samples requires changing these values to match the mm10 parameters, which are already provided in config.yml as comments.
+
+## Changing Genomes
+To switch from mm10 to hg38 (or vice versa), you’ll need to:
+
++ Update the effective_genome_size:
+    + Change this parameter to the appropriate value for your chosen genome. For hg38, use 2913022398. For mm10, use 2730871774.
+
++ Update the chrom_sizes File:
+    + Point chrom_sizes to the correct chromosome sizes file, such as resources/hg38.chrom.sizes for hg38 or resources/mm10.chrom.sizes for mm10.
+
++ Update the genome Parameter for MACS2:
+    + Set the genome parameter to "hs" for human or "mm" for mouse, to ensure that MACS2 uses the correct genome size estimates.
+
+All information required for switching between hg38 and mm10 is included in config.yml, commented out next to the default settings. Simply uncomment and modify these values as needed when changing the genome from mm10 to hg38.
+
+Tool Versions and Modules
+The config.yml file also specifies versions of tools and modules (e.g., deeptools, macs2, samtools, bedtools, R) used by the pipeline. These versions help maintain reproducibility and ensure that the pipeline runs consistently across different computing environments.
 
 # 4) Tools & Modules:
 The pipeline relies on a series of bioinformatics tools, including:
