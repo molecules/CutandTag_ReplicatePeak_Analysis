@@ -40,7 +40,7 @@ By integrating this two-step approach, you ensure a robust, end-to-end workflow 
 Configuration:
 All parameters (e.g., genome size, MACS2 q-values, minimum number of overlapping samples for consensus peaks, paths to executables) are controlled via the config/config.yml file.
 ## Explanation of config.yml
-    + Note. Make sure to check config.yml for the appropriate genome alignment
++ Note. Make sure to check config.yml for the appropriate genome alignment
 
 The config.yml file in this repository controls most of the parameters and references used by the pipeline, including genome settings, tool versions, and other workflow parameters.
 
