@@ -35,6 +35,7 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
+        "results/heatmap/Beds_All_Samples.gz",
         "results/heatmap/HeatPlots_All_Samples.png"
 
 ##################################################################
@@ -109,7 +110,8 @@ rule create_bam_from_consensus:
     input:
         bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
     output:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
+        bam="results/consensusPeaks/{Set}_consensus_peaks.bam",
+        sorted_bed="results/consensusPeaks/{Set}_consensus_peaks_sorted.bed"
     params:
         genome_file=config["chrom_sizes"]
     envmodules:
@@ -117,7 +119,11 @@ rule create_bam_from_consensus:
         config["samtools"]
     shell:
         """
-        bedtools bedtobam -i {input.bed} -g {params.genome_file} > {output.bam}
+        # Ensure the BED file is sorted
+        bedtools sort -i {input.bed} > {output.sorted_bed}
+
+        # Convert the sorted BED file to BAM and index it
+        bedtools bedtobam -i {output.sorted_bed} -g {params.genome_file} > {output.bam}
         samtools index {output.bam}
         """
 
@@ -205,7 +211,10 @@ rule generate_heatmap:
         # Extend regions before and after the midpoint
         before_region=3000,
         after_region=3000,
-        processors=8
+        processors=8,
+        refPointName="Center",
+        regionsName="Midpoints",
+        sampleNames=lambda wildcards: ",".join(list(set(samples_table["set"])))
     envmodules:
         config["deeptools"]
     shell:
@@ -221,5 +230,9 @@ rule generate_heatmap:
         plotHeatmap \
             -m {output.matrix} \
             -out {output.heatmap} \
-            --dpi 1000
+            --dpi 1000 \
+            --sortUsing sum \
+            --refPointLabel "{params.refPointName}" \
+            --regionsLabel "{params.regionsName}" \
+            --samplesLabel "{params.sampleNames}"
         """

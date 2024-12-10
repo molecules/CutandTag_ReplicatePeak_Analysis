@@ -2,32 +2,35 @@
 __default__:
     account: sansam-lab
     partition: serial
-    time: 08:00:00 # time limit for each job
+    time: 08:00:00
     cpus-per-task: 2
     mem: 16G
     output: results/logs/slurm-%x.%A.%a.log
     error: results/errors/slurm-%x.%A.%a.err
 
 call_peaks_with_macs2:
-    cpus-per-task: 2
-    mem: 16G
-    cores: 2
+    cpus-per-task: 4
+    mem: 32G
+    time: 04:00:00
+    cores: 4
     name: "{rule}.{wildcards.sample}"
     output: results/logs/{rule}.{wildcards.sample}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.sample}.slurm-%x.%A.%a.err
 
-generate_consensus_peaks:
+generate_merged_peaks:
     cpus-per-task: 4
     mem: 32G
+    time: 04:00:00
     cores: 4
     name: "{rule}.{wildcards.Set}"
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
 
 make_bed_of_reproducible_peaks:
-    cpus-per-task: 2
-    mem: 16G
-    cores: 2
+    cpus-per-task: 4
+    mem: 32G
+    time: 04:00:00
+    cores: 4
     name: "{rule}.{wildcards.Set}"
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
@@ -35,7 +38,8 @@ make_bed_of_reproducible_peaks:
 create_bam_from_consensus:
     cpus-per-task: 4
     mem: 16G
-    cores: 2
+    time: 02:00:00
+    cores: 4
     name: "{rule}.{wildcards.Set}"
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
@@ -43,7 +47,35 @@ create_bam_from_consensus:
 create_bigwig_from_consensus:
     cpus-per-task: 4
     mem: 16G
-    cores: 2
+    time: 02:00:00
+    cores: 4
     name: "{rule}.{wildcards.Set}"
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
+
+make_euler_plot_of_overlaps_with_merged:
+    cpus-per-task: 4
+    mem: 16G
+    time: 02:00:00
+    cores: 4
+    name: "{rule}.{wildcards.Set}"
+    output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
+    error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
+
+midpoint_and_peak_overlaps:
+    cpus-per-task: 4
+    mem: 16G
+    time: 02:00:00
+    cores: 4
+    name: "{rule}.midpoints"
+    output: results/logs/{rule}.midpoints.slurm-%x.%A.%a.log
+    error: results/errors/{rule}.midpoints.slurm-%x.%A.%a.err
+
+generate_heatmap:
+    cpus-per-task: 8
+    mem: 64G
+    time: 08:00:00
+    cores: 8
+    name: "{rule}.heatmap"
+    output: results/logs/{rule}.heatmap.slurm-%x.%A.%a.log
+    error: results/errors/{rule}.heatmap.slurm-%x.%A.%a.err
