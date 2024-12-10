@@ -97,7 +97,7 @@ Control_Rep3,resources/input2B.bam,Set2
 **bam**: Path to the aligned BAM file  
 **set**: Sample grouping for consensus peak analysis
 
-- Choose descriptive sample names for clarity in outputs and plots.
+- All samples with the same **Set** name will be combined to generate a consensus peak set.
 
 # 7) Instructions to run on Slurm managed HPC
 2A. Clone repository
