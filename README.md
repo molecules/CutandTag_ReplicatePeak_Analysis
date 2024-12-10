@@ -52,11 +52,14 @@ The `config.yml` file controls genome settings, tool versions, and other workflo
 
 To switch from mm10 to hg38 (or vice versa), you’ll need to change:
 - **Genome and Effective Genome Size**:
+  Update genome and effective genomes sizes
   - For human (hg38), set `genome: "hs"` and `effective_genome_size: 2913022398`
   - For mouse (mm10), set `genome: "mm"` and `effective_genome_size: 2730871774`
 
-- Update the chrom_sizes File:
-  Point chrom_sizes to the correct chromosome sizes file, such as `resources/hg38.chrom.sizes` for hg38 or `resources/mm10.chrom.sizes` for mm10.
+- **Chrom_sizes File**:
+  Point chrom_sizes to the correct chromosome sizes file.
+  - For human (hg38), set `resources/hg38.chrom.sizes`
+  - For mouse (mm10), set `resources/mm10.chrom.sizes`
 
 All information required for switching between hg38 and mm10 is included in config.yml, commented out next to the default settings. Simply uncomment and modify these values as needed when changing the genome from mm10 to hg38.
 
@@ -74,7 +77,7 @@ The pipeline relies on bioinformatics tools, including:
 # 5) Example Data
 A compact, pre-processed dataset is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization.
 
-# 6) Explanation of samples.csv
+# 6) Explanation of `samples.csv`
 Note. Make sure to check sample.csv before each run
 
 `samples.csv` specifies the samples to analyze, their BAM file locations, and how they are grouped into sets. The file has three columns: `sample`, `bam`, and `set`.
