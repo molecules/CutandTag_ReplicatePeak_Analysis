@@ -5,7 +5,7 @@
 
 # 1) Project Description
 
-**CutAndTag_ReplicatePeak_Analysis** is a Snakemake pipeline designed to perform downstream peak analysis on processed Cut-and-Tag sequencing data. Rather than starting from raw FASTQ reads, this pipeline starts with already aligned and filtered BAM files, focusing on the identification of reproducible peaks, the generation of consensus peak sets, and the visualization of overlaps and signal distributions across multiple samples or experimental conditions.
+**CutAndTag_ReplicatePeak_Analysis** is a Snakemake pipeline designed to perform downstream analysis on processed Cut-and-Tag sequencing data. Rather than starting from raw FASTQ reads, this pipeline starts with already aligned and filtered BAM files, focusing on the identification of reproducible peaks, the generation of consensus peak sets, and the visualization of overlaps and signal distributions across multiple samples or experimental conditions.
 
 + Note: If you are starting from raw FASTQ files, consider using the [CutandTag_Analysis_Snakemake](https://github.com/JK-Cobre-Help/CutandTag_Analysis_Snakemake) pipeline first. That pipeline handles the initial data processing steps—such as quality control, alignment, and basic filtering—providing you with the cleaned and aligned data that serve as the input for CutAndTag_ReplicatePeak_Analysis.
 
