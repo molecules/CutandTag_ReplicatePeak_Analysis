@@ -218,7 +218,7 @@ rule generate_heatmap:
         processors=8,
         refPointName="Center",
         regionsName="Midpoints",
-        sampleName=lambda wc: " ".join(sorted(set(samples_table["set"])))
+        sampleName=lambda wc: " ".join(set(samples_table["set"]))
     envmodules:
         config["deeptools"]
     shell:
