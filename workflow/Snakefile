@@ -217,7 +217,8 @@ rule generate_heatmap:
         after_region=3000,
         processors=8,
         refPointName="Center",
-        regionsName="Midpoints"
+        regionsName="Midpoints",
+        sampleOrder=config["sampleOrder"]
     envmodules:
         config["deeptools"]
     shell:
@@ -235,7 +236,7 @@ rule generate_heatmap:
             -out {output.heatmap} \
             --dpi 1000 \
             --sortUsing sum \
-            --sortUsingSamples 1 \
+            --sortUsingSamples "{params.sampleOrder}" \
             --refPointLabel "{params.refPointName}" \
             --regionsLabel "{params.regionsName}"
         """
