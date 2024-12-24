@@ -4,7 +4,9 @@ samples_csv: "config/samples.csv"
 ## genome-of-interest
 genome: "hs"
 # For human genome - "hs" / for mouse genome - "mm"
-BSgenomeRPackage: "BSgenome.Hsapiens.UCSC.hg38"   
+
+## sample order (specify which sample should set the order of the midpoints bed [1 to nSamples])
+sampleOrder: 1
 
 ## effective genome size
 effective_genome_size: 2913022398
