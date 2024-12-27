@@ -221,8 +221,7 @@ rule generate_heatmap:
         # Construct the comma-separated string in normal Python first
         sort_using_samples = ",".join(str(i) for i in params.sampleOrder)
 
-        shell:
-            """
+        shell("""
             computeMatrix reference-point \
                 -S {input.bigwigs} \
                 -R {input.midpoints} \
@@ -239,4 +238,4 @@ rule generate_heatmap:
                 --sortUsingSamples {sort_using_samples} \
                 --refPointLabel {params.refPointName} \
                 --regionsLabel {params.regionsName}
-            """
+        """)
