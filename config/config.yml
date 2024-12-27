@@ -5,8 +5,9 @@ samples_csv: "config/samples.csv"
 genome: "hs"
 # For human genome - "hs" / for mouse genome - "mm"
 
-## sample order (specify which sample should set the order of the midpoints bed [1 to nSamples])
-sampleOrder: 1
+## sample order 
+## index starts at 0 (indicate which sample should set the order of the midpoints.bed in heatmap [0 to nSamples-1])
+sampleOrder: 0
 
 ## effective genome size
 effective_genome_size: 2913022398
