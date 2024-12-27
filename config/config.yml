@@ -7,7 +7,7 @@ genome: "mm"
 
 ## sample order 
 ## index starts at 0 (indicate which sample should set the order of the midpoints.bed in heatmap [0 to nSamples-1])
-sampleOrder: 0
+sampleOrder: 1
 
 ## effective genome size
 effective_genome_size: 2730871774
