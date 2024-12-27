@@ -2,7 +2,7 @@
 samples_csv: "config/samples.csv"
 
 ## genome-of-interest
-genome: "hs"
+genome: "mm"
 # For human genome - "hs" / for mouse genome - "mm"
 
 ## sample order 
@@ -10,7 +10,7 @@ genome: "hs"
 sampleOrder: 0
 
 ## effective genome size
-effective_genome_size: 2913022398
+effective_genome_size: 2730871774
 # mm10 genome size - 2730871774       
 # GRCh38 genome size - 2913022398
 
@@ -22,7 +22,7 @@ minNumberOfSampleOverlaps: 2
 binSize: 50
 
 ## bedtobam
-chrom_sizes: "resources/hg38.chrom.sizes"
+chrom_sizes: "resources/mm10.chrom.sizes"
 # For human - "resources/hg38.chrom.sizes" / for mouse - "resources/mm10.chrom.sizes"
 
 ## Euler plot parameters
