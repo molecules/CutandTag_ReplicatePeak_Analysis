@@ -236,7 +236,7 @@ rule generate_heatmap:
             -out {output.heatmap} \
             --dpi 1000 \
             --sortUsing sum \
-            --sortUsingSamples "{params.sampleOrder}" \
+            --sortUsingSamples "{','.join([str(i) for i in params.sampleOrder])}" \
             --refPointLabel "{params.refPointName}" \
             --regionsLabel "{params.regionsName}"
         """
