@@ -223,6 +223,8 @@ rule generate_heatmap:
         config["deeptools"]
     shell:
         """
+        echo "Using sampleOrder: {params.sampleOrder}"
+
         computeMatrix reference-point \
             -S {input.bigwigs} \
             -R {input.midpoints} \
