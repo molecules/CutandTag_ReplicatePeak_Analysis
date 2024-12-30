@@ -201,10 +201,16 @@ rule midpoint_and_peak_overlaps:
 ##                Generate Heatmap for All Samples              ##
 ##################################################################
 
+# Convert your CSV column into a list in CSV order
+all_sets = samples_table["set"]  # e.g., ['H3K27ac_C', 'H3K27ac_T', 'H3K27ac_C', ...]
+
+# Retain only unique sets in the first-seen order
+unique_sets_in_order = list(dict.fromkeys(all_sets))
+
 rule generate_heatmap:
     input:
         # Input bigWig files (all consensus peaks bigwigs)
-        bigwigs=expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
+        bigwigs = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=unique_sets_in_order),
         # Input MidpointOverlaps BED file
         midpoints="results/overlaps/MidpointOverlaps.bed"
     output:
