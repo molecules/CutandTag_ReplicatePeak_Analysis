@@ -94,7 +94,7 @@ Control_Rep3,resources/input2B.bam,Set2
 ```
 
 `sample`: Unique sample name  
-  - used for individual sample output filenames to identify samples in consensus peak euler plot  
+  - used for individual sample output filenames and to identify samples in consensus peak euler plot  
     
 `bam`: Path to the aligned BAM file  
   - sorted.bam is usually best but other .bam files can be used  
