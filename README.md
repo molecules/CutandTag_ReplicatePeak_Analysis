@@ -48,7 +48,7 @@ All parameters (e.g., genome size, MACS2 q-values, minimum number of overlapping
 The `config.yml` file controls genome settings, tool versions, and other workflow parameters.
 
 ## Changing Genomes
-By default, the config.yml is set up for hs (human hg38). Running mouse (mm10) samples requires changing these values to match the mm10 parameters, which are already provided in `config.yml` as comments.
+By default, the `config.yml` is set up for mouse (mm10). Running human (hg38) samples requires changing these values to match the hg38 parameters, which are already provided in `config.yml` as comments.
 
 To switch from mm10 to hg38 (or vice versa), you’ll need to change:
 - **Genome and Effective Genome Size**:
@@ -61,7 +61,7 @@ To switch from mm10 to hg38 (or vice versa), you’ll need to change:
   - For human (hg38), set `resources/hg38.chrom.sizes`
   - For mouse (mm10), set `resources/mm10.chrom.sizes`
 
-All information required for switching between hg38 and mm10 is included in config.yml, commented out next to the default settings. Simply uncomment and modify these values as needed when changing the genome from mm10 to hg38.
+All information required for switching between hg38 and mm10 is included in `config.yml`, commented out next to the default settings. Simply uncomment and modify these values as needed when changing the genome from mm10 to hg38.
 
 Tool Versions and Modules
 The `config.yml` file also specifies versions of tools and modules (e.g., deeptools, macs2, samtools, bedtools, R) used by the pipeline. These versions help maintain reproducibility and ensure that the pipeline runs consistently across different computing environments.
@@ -75,10 +75,10 @@ The pipeline relies on bioinformatics tools, including:
 - **R** with **Bioconductor** packages for merging peaks, generating consensus sets, and creating **Euler** diagrams
 
 # 5) Example Data
-A compact, pre-processed dataset is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization.
+A compact, pre-processed dataset aligned to mm10 is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization.
 
 # 6) Explanation of `samples.csv`
-Note. Make sure to check sample.csv before each run
+Note. Make sure to check `sample.csv` before each run
 
 `samples.csv` specifies the samples to analyze, their BAM file locations, and how they are grouped into sets. The file has three columns: `sample`, `bam`, and `set`.
 
@@ -93,9 +93,12 @@ Control_Rep2,resources/input1A.bam,Set2
 Control_Rep3,resources/input2B.bam,Set2
 ```
 
-**sample**: Unique sample name (used in output filenames)  
-**bam**: Path to the aligned BAM file  
+**sample**: Unique sample name 
+  - used for individual sample output filenames and is used to identify samples in consensus peak euler plot  
+**bam**: Path to the aligned BAM file
+  - sorted.bam is usually best but other .bam files can be used
 **set**: Sample grouping for consensus peak analysis
+  - sets naming for consensus peak files downstream
 
 - All samples with the same **Set** name will be combined to generate a consensus peak set.
 
