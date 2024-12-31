@@ -100,9 +100,7 @@ Control_Rep3,resources/input2B.bam,Set2
   - sorted.bam is usually best but other .bam files can be used  
     
 **set**: Sample grouping for consensus peak analysis  
-  - sets naming for consensus peak files downstream  
-
-- All samples with the same **Set** name will be combined to generate a consensus peak set.
+  - sets naming for consensus peak files downstream. All samples with the same **Set** name will be combined to generate a consensus peak set.
 
 # 7) Instructions to run on Slurm managed HPC
 2A. Clone repository
