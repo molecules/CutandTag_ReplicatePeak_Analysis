@@ -95,9 +95,11 @@ Control_Rep3,resources/input2B.bam,Set2
 
 **sample**: Unique sample name  
   - used for individual sample output filenames and is used to identify samples in consensus peak euler plot  
-**bam**: Path to the aligned BAM file
+    
+**bam**: Path to the aligned BAM file  
   - sorted.bam is usually best but other .bam files can be used  
-**set**: Sample grouping for consensus peak analysis
+    
+**set**: Sample grouping for consensus peak analysis  
   - sets naming for consensus peak files downstream  
 
 - All samples with the same **Set** name will be combined to generate a consensus peak set.
