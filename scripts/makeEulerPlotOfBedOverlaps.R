@@ -3,7 +3,7 @@
 # Author: Kevin Boyd
 # Date: Dec 31, 2024
 # Purpose: Generate an Euler plot of overlapping BED files.
-#          Each BED file is treated as a "set". 
+#          Each BED file is treated as a "set".
 #          Output is a PDF + RDS with an euler plot.
 ###############################################
 
@@ -34,18 +34,15 @@ read_bed_gr <- function(bed_file) {
 gr_list <- lapply(bed_files, read_bed_gr)
 names(gr_list) <- set_names
 
-# Find a universal genomic range of all intervals
-# We'll build a presence/absence table for each set:
-#   1 if the region is in that set, else 0
-# One approach: compute the "union" of all intervals
-all_union <- reduce(do.call(c, gr_list))
+# Combine them into one big GRanges, then reduce:
+all_combined <- do.call("c", unname(gr_list))
+all_union    <- reduce(all_combined)
 
-# For each set, find overlaps
+# Build presence/absence table
 mcols(all_union) <- do.call(
   cbind,
   lapply(seq_along(gr_list), function(i) {
     overlaps <- findOverlaps(all_union, gr_list[[i]])
-    # Mark 1 if overlapping
     in_set <- rep(0, length(all_union))
     in_set[queryHits(overlaps)] <- 1
     in_set
@@ -53,18 +50,20 @@ mcols(all_union) <- do.call(
 )
 colnames(mcols(all_union)) <- set_names
 
-# Create an Euler plot from the presence/absence matrix
+# Make the Euler plot
 presence_absence_mat <- as.matrix(mcols(all_union))
 eulerr_options(
   labels = list(fontsize = font_size),
-  quantities = list(fontsize = font_size - 2, 
-                    padding = grid::unit(100, "mm")),
+  quantities = list(
+    fontsize = font_size - 2,
+    padding = grid::unit(100, "mm")
+  ),
   legend = list(fontsize = font_size, vgap = 0.01)
 )
 
 EulerPlot <- presence_absence_mat %>%
-  euler(., shape = "ellipse") %>%
-  plot(., quantities = TRUE, legend = TRUE, adjust_labels = TRUE, fills = colors) %>%
+  euler(shape = "ellipse") %>%
+  plot(quantities = TRUE, legend = TRUE, adjust_labels = TRUE, fills = colors) %>%
   as.ggplot()
 
 # Save plot to RDS
