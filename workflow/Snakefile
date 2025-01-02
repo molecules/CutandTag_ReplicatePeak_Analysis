@@ -263,25 +263,27 @@ rule generate_heatmap:
         """
 
 ##################################################################
-##                Euler Plot by Mark and Condition              ##
+##                Euler Plot Conditions by Mark                 ##
 ##################################################################
 
-rule euler_plot_by_mark_and_condition:
-    """
-    Generate an Euler plot of consensus .bed overlaps for each combination
-    of mark and condition. For example: (H3K27ac, C) or (H3K27ac, T), etc.
-    """
+def conditions_for_mark(mark, df):
+    subset = df[df["mark"] == mark]
+    return sorted(set(subset["condition"]))
+
+def bed_paths_for_mark(mark, df):
+    conds = conditions_for_mark(mark, df)
+    return [f"results/consensusPeaks/{mark}_{c}_consensus_peaks.bed" for c in conds]
+
+rule euler_plot_by_mark:
     input:
-        lambda wc: [
-            f"results/consensusPeaks/{s}_consensus_peaks.bed"
-            for s in sets_for_mark_condition(wc.mark, wc.condition, samples_table)
-        ]
+        # Use our function to get all condition BEDs for a given mark
+        lambda wc: bed_paths_for_mark(wc.mark, samples_table)
     output:
-        rds="results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.rds",
-        pdf="results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.pdf"
+        rds="results/eulerPlotMarkByCondition/{mark}_eulerPlot.rds",
+        pdf="results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf"
     params:
         font_size=config.get("EulerFontSize"),
-        colors=config["EulerColors2"], 
+        colors=config.get("EulerColors2"),
         pdf_width=config.get("EulerWidth"),
         pdf_height=config.get("EulerHeight")
     envmodules:
@@ -289,9 +291,11 @@ rule euler_plot_by_mark_and_condition:
         config["bioconductor"]
     shell:
         """
-        # Turn the list of input bed files into comma-separated strings
+        # Build a comma-separated list of input BEDs
         BED_FILES="$(echo {input} | tr ' ' ',')"
-        SET_NAMES="$(echo {input} | sed 's/results\\/consensusPeaks\\///g' | sed 's/_consensus_peaks.bed//g' | tr ' ' ',')"
+
+        # Build a comma-separated list of condition labels
+        SET_NAMES="{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}"
 
         Rscript scripts/makeEulerPlotOfBedOverlaps.R \
             "$BED_FILES" \
