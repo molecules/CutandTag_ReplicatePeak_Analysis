@@ -25,6 +25,17 @@ def filter_sample_by_set(Set, samples_table):
     filtered_rows = samples_table[samples_table["set"] == Set]
     return list(set(filtered_rows["sample"].tolist()))
 
+unique_marks = list(dict.fromkeys(samples_table["mark"]))
+unique_conditions = list(dict.fromkeys(samples_table["condition"]))
+
+def sets_for_mark_condition(mark, condition, df):
+    """
+    Return a list of unique 'set' values where (mark, condition) match.
+    """
+    subset = df[(df["mark"] == mark) & (df["condition"] == condition)]
+    return list(set(subset["set"]))
+
+
 ##################################################################
 ##                          Rule All                            ##
 ##################################################################
@@ -40,7 +51,8 @@ rule all:
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
         "results/heatmap/Beds_All_Samples.gz",
-        "results/heatmap/HeatPlots_All_Samples.png"
+        "results/heatmap/HeatPlots_All_Samples.png",
+        expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
@@ -163,7 +175,7 @@ rule make_euler_plot_of_overlaps_with_merged:
         euler_pdf="results/eulerPlot/{Set}_eulerPlot.pdf"
     params:
         euler_fontsize=config["EulerFontSize"],
-        euler_colors=config["EulerColors"],
+        euler_colors=config["EulerColors1"],
         pdf_width=config["EulerWidth"],
         pdf_height=config["EulerHeight"]
     envmodules:
@@ -247,4 +259,61 @@ rule generate_heatmap:
             --sortUsingSamples "{params.sampleOrder}" \
             --refPointLabel "{params.refPointName}" \
             --regionsLabel "{params.regionsName}"
+        """
+
+##################################################################
+##                Euler Plot Conditions by Mark                 ##
+##################################################################
+
+def conditions_for_mark(mark, df):
+    subset = df[df["mark"] == mark]
+    return sorted(set(subset["condition"]))
+
+def bed_paths_for_mark(mark, df):
+    # Build the list of .bed files for each condition
+    conds = conditions_for_mark(mark, df)
+    return [f"results/consensusPeaks/{mark}_{c}_consensus_peaks.bed" for c in conds]
+
+def joined_conditions_for_mark(wc):
+    """
+    wc is the wildcard object; wc.mark is the current 'mark' value.
+    We return a single comma-separated string, e.g. "C,T" or "C,T,X".
+    """
+    return ",".join(conditions_for_mark(wc.mark, samples_table))
+
+rule euler_plot_by_mark:
+    input:
+        lambda wc: bed_paths_for_mark(wc.mark, samples_table)
+    output:
+        rds="results/eulerPlotMarkByCondition/{mark}_eulerPlot.rds",
+        pdf="results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf"
+    params:
+        font_size=config["EulerFontSize"],
+        colors=config["EulerColors2"],
+        pdf_width=config["EulerWidth"],
+        pdf_height=config["EulerHeight"],
+        set_names=lambda wc: joined_conditions_for_mark(wc)
+    envmodules:
+        config["R"],
+        config["bioconductor"]
+    shell:
+        """
+        # Turn the list of input .bed files into a comma-separated string
+        BED_FILES="$(echo {input} | tr ' ' ',')"
+
+        # Pull in your precomputed set_names from params
+        SET_NAMES="{params.set_names}"
+
+        echo "BED_FILES => $BED_FILES"
+        echo "SET_NAMES => $SET_NAMES"
+
+        Rscript scripts/makeEulerPlotOfBedOverlaps.R \
+            "$BED_FILES" \
+            "$SET_NAMES" \
+            {output.rds} \
+            {output.pdf} \
+            {params.font_size} \
+            "{params.colors}" \
+            {params.pdf_width} \
+            {params.pdf_height}
         """
