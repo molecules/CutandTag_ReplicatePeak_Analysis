@@ -277,16 +277,13 @@ rule euler_plot_by_mark_and_condition:
             for s in sets_for_mark_condition(wc.mark, wc.condition, samples_table)
         ]
     output:
-        rds = "results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.rds",
-        pdf = "results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.pdf"
+        rds="results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.rds",
+        pdf="results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.pdf"
     params:
-        font_size = config.get("EulerFontSize", 12),
-        colors = ",".join(config.get("EulerColors", ["#E41A1C","#377EB8","#4DAF4A"])),
-        pdf_width = config.get("EulerWidth", 7),
-        pdf_height = config.get("EulerHeight", 5)
-    envmodules:
-        config["R"],
-        config["bioconductor"]
+        font_size=config.get("EulerFontSize"),
+        colors=config["EulerColors2"], 
+        pdf_width=config.get("EulerWidth"),
+        pdf_height=config.get("EulerHeight")
     shell:
         """
         # Turn the list of input bed files into comma-separated strings
@@ -294,12 +291,12 @@ rule euler_plot_by_mark_and_condition:
         SET_NAMES="$(echo {input} | sed 's/results\\/consensusPeaks\\///g' | sed 's/_consensus_peaks.bed//g' | tr ' ' ',')"
 
         Rscript scripts/makeEulerPlotOfBedOverlaps.R \
-          "$BED_FILES" \
-          "$SET_NAMES" \
-          {output.rds} \
-          {output.pdf} \
-          {params.font_size} \
-          "{params.colors}" \
-          {params.pdf_width} \
-          {params.pdf_height}
+            "$BED_FILES" \
+            "$SET_NAMES" \
+            {output.rds} \
+            {output.pdf} \
+            {params.font_size} \
+            "{params.colors}" \
+            {params.pdf_width} \
+            {params.pdf_height}
         """
