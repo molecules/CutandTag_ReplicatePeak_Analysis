@@ -84,13 +84,13 @@ Note. Make sure to check `sample.csv` before each run
 
 **Example `samples.csv`:**
 ```csv
-sample,bam,set
-Treatment_Rep1,resources/test1.bam,Set1
-Treatment_Rep2,resources/test1A.bam,Set1
-Treatment_Rep3,resources/test1B.bam,Set1
-Control_Rep1,resources/input1.bam,Set2
-Control_Rep2,resources/input1A.bam,Set2
-Control_Rep3,resources/input2B.bam,Set2
+sample,bam,set,mark,condition
+H3K27ac_rep1_C,resources/H3K27ac_rep1_C_PB042_chr1_1_10Mb.bam,H3K27ac_C,H3K27ac,C
+H3K27ac_rep1_T,resources/H3K27ac_rep1_T_PB045_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,T
+H3K27ac_rep2_C,resources/H3K27ac_rep2_C_PB052_chr1_1_10Mb.bam,H3K27ac_C,H3K27ac,C
+H3K27ac_rep2_T,resources/H3K27ac_rep2_T_PB055_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,T
+H3K27ac_rep3_C,resources/H3K27ac_rep3_C_PB062_chr1_1_10Mb.bam,H3K27ac_C,H3K27ac,C
+H3K27ac_rep3_T,resources/H3K27ac_rep3_T_PB065_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,T
 ```
 
 `sample`: Unique sample name  
@@ -101,6 +101,13 @@ Control_Rep3,resources/input2B.bam,Set2
     
 `set`: Sample grouping for consensus peak analysis  
   - sets naming for consensus peak files downstream. All samples with the same **Set** name will be combined to generate a consensus peak set.
+  
+`mark`: Indicates the type of histone mark or other feature captured
+    - all samples with the same mark name will be grouped for subsequent control vs treatment plots
+
+`condition`: Specifies the experimental condition
+    - these values are used to distinguish groups in control vs treatment overlap plots for each mark
+
 
 # 7) Instructions to run on Slurm managed HPC
 2A. Clone repository
