@@ -79,3 +79,12 @@ generate_heatmap:
     name: "{rule}.heatmap"
     output: results/logs/{rule}.heatmap.slurm-%x.%A.%a.log
     error: results/errors/{rule}.heatmap.slurm-%x.%A.%a.err
+
+euler_plot_by_mark:
+    cpus-per-task: 4
+    mem: 16G
+    time: 02:00:00
+    cores: 4
+    name: "{rule}.{wildcards.mark}"
+    output: results/logs/{rule}.{wildcards.mark}.slurm-%x.%A.%a.log
+    error: results/errors/{rule}.{wildcards.mark}.slurm-%x.%A.%a.err
