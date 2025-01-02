@@ -176,7 +176,7 @@ rule make_euler_plot_of_overlaps_with_merged:
         euler_pdf="results/eulerPlot/{Set}_eulerPlot.pdf"
     params:
         euler_fontsize=config["EulerFontSize"],
-        euler_colors=config["EulerColors"],
+        euler_colors=config["EulerColors1"],
         pdf_width=config["EulerWidth"],
         pdf_height=config["EulerHeight"]
     envmodules:
