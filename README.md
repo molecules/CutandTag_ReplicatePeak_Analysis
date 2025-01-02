@@ -99,14 +99,17 @@ H3K27ac_rep3_T,resources/H3K27ac_rep3_T_PB065_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,
 `bam`: Path to the aligned BAM file  
   - sorted.bam is usually best but other .bam files can be used  
     
-`set`: Sample grouping for consensus peak analysis  
+`set`: Sample grouping for consensus peak analysis **({mark}_{condition})**
   - sets naming for consensus peak files downstream. All samples with the same **Set** name will be combined to generate a consensus peak set.
+  - MUST MATCH MARK AND CONDITION (Ex: H3K27ac_Control or H3K27ac_C)
   
 `mark`: Indicates the type of histone mark or other feature captured
   - all samples with the same mark name will be grouped for subsequent control vs treatment plots
+  - MUST MATCH MARK NAME IN SET
 
 `condition`: Specifies the experimental condition
   - these values are used to distinguish groups in control vs treatment overlap plots for each mark
+  - MUST MATCH CONDITION NAME IN SET
 
 
 # 7) Instructions to run on Slurm managed HPC
