@@ -284,6 +284,9 @@ rule euler_plot_by_mark_and_condition:
         colors = ",".join(config.get("EulerColors", ["#E41A1C","#377EB8","#4DAF4A"])),
         pdf_width = config.get("EulerWidth", 7),
         pdf_height = config.get("EulerHeight", 5)
+    envmodules:
+        config["R"],
+        config["bioconductor"]
     shell:
         """
         # Turn the list of input bed files into comma-separated strings
