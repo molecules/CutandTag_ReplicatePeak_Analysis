@@ -103,10 +103,10 @@ H3K27ac_rep3_T,resources/H3K27ac_rep3_T_PB065_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,
   - sets naming for consensus peak files downstream. All samples with the same **Set** name will be combined to generate a consensus peak set.
   
 `mark`: Indicates the type of histone mark or other feature captured
-    - all samples with the same mark name will be grouped for subsequent control vs treatment plots
+  - all samples with the same mark name will be grouped for subsequent control vs treatment plots
 
 `condition`: Specifies the experimental condition
-    - these values are used to distinguish groups in control vs treatment overlap plots for each mark
+  - these values are used to distinguish groups in control vs treatment overlap plots for each mark
 
 
 # 7) Instructions to run on Slurm managed HPC
