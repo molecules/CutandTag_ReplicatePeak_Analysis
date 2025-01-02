@@ -294,7 +294,7 @@ rule euler_plot_by_mark:
         BED_FILES="$(echo {input} | tr ' ' ',')"
 
         # Build a comma-separated list of condition labels
-        SET_NAMES="{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}"
+        SET_NAMES="{{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
 
         Rscript scripts/makeEulerPlotOfBedOverlaps.R \
             "$BED_FILES" \
