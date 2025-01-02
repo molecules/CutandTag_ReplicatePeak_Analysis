@@ -15,13 +15,14 @@ library(ggplotify)
 library(magrittr)
 library(stringr)
 
+# set input variables
 args <- commandArgs(trailingOnly = TRUE)
-bed_files  <- unlist(strsplit(args[1], ","))  # Comma-separated list of BED paths
-set_names  <- unlist(strsplit(args[2], ","))  # Comma-separated list of set names
+bed_files  <- unlist(strsplit(args[1], ","))  
+set_names  <- unlist(strsplit(args[2], ","))  
 output_rds <- args[3]
 output_pdf <- args[4]
 font_size  <- as.numeric(args[5])
-colors     <- str_split(args[6], pattern = ",")[[1]]
+colors     <- strsplit(args[6], ",")[[1]]   # split the comma-separated hex codes
 pdf_width  <- as.numeric(args[7])
 pdf_height <- as.numeric(args[8])
 
