@@ -296,6 +296,15 @@ rule euler_plot_by_mark:
         # Build a comma-separated list of condition labels
         SET_NAMES="{{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
 
+        echo "DEBUG BED_FILES => {input}"
+        echo "DEBUG Conditions => {{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
+    
+        BED_FILES="$(echo {input} | tr ' ' ',')"
+        SET_NAMES="{{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
+    
+        echo "BED_FILES: $BED_FILES"
+        echo "SET_NAMES: $SET_NAMES"
+
         Rscript scripts/makeEulerPlotOfBedOverlaps.R \
             "$BED_FILES" \
             "$SET_NAMES" \
