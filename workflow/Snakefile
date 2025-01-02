@@ -270,40 +270,42 @@ def conditions_for_mark(mark, df):
     return sorted(set(subset["condition"]))
 
 def bed_paths_for_mark(mark, df):
+    # Build the list of .bed files for each condition
     conds = conditions_for_mark(mark, df)
     return [f"results/consensusPeaks/{mark}_{c}_consensus_peaks.bed" for c in conds]
 
+def joined_conditions_for_mark(wc):
+    """
+    wc is the wildcard object; wc.mark is the current 'mark' value.
+    We return a single comma-separated string, e.g. "C,T" or "C,T,X".
+    """
+    return ",".join(conditions_for_mark(wc.mark, samples_table))
+
 rule euler_plot_by_mark:
     input:
-        # Use our function to get all condition BEDs for a given mark
         lambda wc: bed_paths_for_mark(wc.mark, samples_table)
     output:
         rds="results/eulerPlotMarkByCondition/{mark}_eulerPlot.rds",
         pdf="results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf"
     params:
-        font_size=config.get("EulerFontSize"),
-        colors=config.get("EulerColors2"),
-        pdf_width=config.get("EulerWidth"),
-        pdf_height=config.get("EulerHeight")
+        font_size=config["EulerFontSize"],
+        colors=config["EulerColors2"],
+        pdf_width=config["EulerWidth"],
+        pdf_height=config["EulerHeight"],
+        set_names=lambda wc: joined_conditions_for_mark(wc)
     envmodules:
         config["R"],
         config["bioconductor"]
     shell:
         """
-        # Build a comma-separated list of input BEDs
+        # Turn the list of input .bed files into a comma-separated string
         BED_FILES="$(echo {input} | tr ' ' ',')"
 
-        # Build a comma-separated list of condition labels
-        SET_NAMES="{{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
+        # Pull in your precomputed set_names from params
+        SET_NAMES="{params.set_names}"
 
-        echo "DEBUG BED_FILES => {input}"
-        echo "DEBUG Conditions => {{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
-    
-        BED_FILES="$(echo {input} | tr ' ' ',')"
-        SET_NAMES="{{','.join(conditions_for_mark('{wildcards.mark}', samples_table))}}"
-    
-        echo "BED_FILES: $BED_FILES"
-        echo "SET_NAMES: $SET_NAMES"
+        echo "BED_FILES => $BED_FILES"
+        echo "SET_NAMES => $SET_NAMES"
 
         Rscript scripts/makeEulerPlotOfBedOverlaps.R \
             "$BED_FILES" \
