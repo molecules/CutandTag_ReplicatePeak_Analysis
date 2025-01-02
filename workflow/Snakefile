@@ -52,8 +52,7 @@ rule all:
         "results/overlaps/MidpointOverlaps.bed",
         "results/heatmap/Beds_All_Samples.gz",
         "results/heatmap/HeatPlots_All_Samples.png",
-        expand("results/eulerPlotMarkByCondition/{mark}_{condition}_eulerPlot.pdf",
-               mark=unique_marks, condition=unique_conditions)
+        expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
