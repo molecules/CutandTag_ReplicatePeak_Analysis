@@ -100,7 +100,7 @@ H3K27ac_rep3_T,resources/H3K27ac_rep3_T_PB065_chr1_1_10Mb.bam,H3K27ac_T,H3K27ac,
   - sorted.bam is usually best but other .bam files can be used  
     
 `set`: Sample grouping for consensus peak analysis 
-  - **({mark}_{condition})**
+  - **{mark}_{condition}**
   - sets naming for consensus peak files downstream. All samples with the same **Set** name will be combined to generate a consensus peak set.
   - MUST MATCH MARK AND CONDITION (Ex: H3K27ac_Control or H3K27ac_C)
   
