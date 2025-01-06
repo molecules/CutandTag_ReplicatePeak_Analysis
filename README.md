@@ -21,7 +21,7 @@
   Consensus peak sets are converted into BAM and BigWig formats, enabling efficient genome browser visualization and facilitating downstream analyses.
 
 - **Euler Plots of Overlaps**:
-  The pipeline creates Euler diagrams to represent the overlap of peaks among individual samples within a set. This visual approach reveals how consensus peaks emerge from the intersection of multiple replicates.
+  The pipeline creates Euler diagrams to represent the overlap of peaks among individual samples within a set. This visual approach reveals how consensus peaks emerge from the intersection of multiple replicates. There are also euler plots generated to show consensus peak overlap of conditions for each mark.
 
 - **Midpoint and Overlap Analysis**:
   The pipeline identifies peak midpoints and quantifies overlaps, enabling an exploration of peak distribution and subtle differences or similarities of signal across all of the samples beds.
