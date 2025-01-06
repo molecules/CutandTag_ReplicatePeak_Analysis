@@ -75,7 +75,7 @@ The pipeline relies on bioinformatics tools, including:
 - **R** with **Bioconductor** packages for merging peaks, generating consensus sets, and creating **Euler** diagrams
 
 # 5) Example Data
-A compact, pre-processed dataset aligned to mm10 is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization.
+A compact, pre-processed dataset aligned to mm10 is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization. Visualization examlpes are shown below in section 7.
 
 # 6) Explanation of `samples.csv`
 Note. Make sure to check `sample.csv` before each run
