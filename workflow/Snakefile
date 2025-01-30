@@ -135,11 +135,13 @@ rule create_bam_from_consensus:
         config["samtools"]
     shell:
         """
-        # Ensure the BED file is sorted
+        # 1) Sort the original BED file
         bedtools sort -i {input.bed} > {output.sorted_bed}
 
-        # Convert the sorted BED file to BAM and index it
-        bedtools bedtobam -i {output.sorted_bed} -g {params.genome_file} > {output.bam}
+        # 2) Convert sorted BED -> BAM, then pipe to samtools sort -> final coordinate-sorted BAM
+        bedtools bedtobam -i {output.sorted_bed} -g {params.genome_file} | samtools sort -o {output.bam}
+
+        # 3) Index the coordinate-sorted BAM
         samtools index {output.bam}
         """
 
