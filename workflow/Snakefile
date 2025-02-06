@@ -50,9 +50,10 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
+        expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
         "results/heatmap/Beds_All_Samples.gz",
         "results/heatmap/HeatPlots_All_Samples.png",
-        expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
+        expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks)
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
