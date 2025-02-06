@@ -42,8 +42,8 @@ def sets_for_mark_condition(mark, condition, df):
 ##################################################################
 
 # Get the flags from the config (defaut True if not specified)
-generate_consensus_heatplot = config.get("generate_heatplots", {}).get("consensus", True)
-generate_unique_heatplot    = config.get("generate_heatplots", {}).get("unique", True)
+generate_consensus_heatplot = config.get("generate_heatplots", {}).get("heatplot_all", True)
+generate_unique_heatplot    = config.get("generate_heatplots", {}).get("heatplot_unique", True)
 
 # Define consensus heatplot targets conditionally
 consensus_heatplot_targets = []
