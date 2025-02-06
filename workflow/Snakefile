@@ -331,16 +331,23 @@ rule euler_plot_by_mark:
 rule generate_unique_heatmap:
     input:
         uniqueBeds = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
-        bigwigs = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
+        bigwigs   = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
     output:
-        matrix = "results/heatmap/Beds_Unique_Samples.gz",
+        matrix  = "results/heatmap/Beds_Unique_Samples.gz",
         heatmap = "results/heatmap/HeatPlots_Unique_Samples.png"
     params:
         before_region = 3000,
-        after_region = 3000,
-        processors = 8,
-        refPointName = "Center",
-        sampleOrder = config["sampleOrder"]
+        after_region  = 3000,
+        processors    = 8,
+        refPointName  = "Center",
+        sampleOrder   = config["sampleOrder"],
+        samplesLabel  = lambda wildcards, input: ",".join(
+            sorted(
+                [os.path.basename(x).replace("_consensus_peaks.bw", "")
+                 for x in input.bigwigs],
+                key=lambda s: config["sampleOrder"].index(s) if s in config["sampleOrder"] else 9999
+            )
+        )
     envmodules:
         config["deeptools"]
     shell:
@@ -359,5 +366,6 @@ rule generate_unique_heatmap:
             --dpi 1000 \
             --sortUsing sum \
             --sortUsingSamples "{params.sampleOrder}" \
-            --refPointLabel "{params.refPointName}"
+            --refPointLabel "{params.refPointName}" \
+            --samplesLabel "{params.samplesLabel}"
         """
