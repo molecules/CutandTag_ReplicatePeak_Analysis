@@ -201,7 +201,8 @@ rule midpoint_and_peak_overlaps:
     output:
         # Outputs: midpoint and full overlaps
         midpoint="results/overlaps/MidpointOverlaps.bed",
-        peak="results/overlaps/PeakOverlaps.bed"
+        peak="results/overlaps/PeakOverlaps.bed",
+        unique = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"])))
     params:
         out_dir="results/overlaps/"
     envmodules:
