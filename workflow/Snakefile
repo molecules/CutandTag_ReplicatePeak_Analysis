@@ -347,7 +347,8 @@ rule generate_unique_heatmap:
         # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" for deepTools:
         sampleOrder   = config["sampleOrder"].replace(",", " "),
         # Generate sample labels by extracting the basename (in the order of the input bigWig files)
-        samplesLabel  = lambda wildcards, input: ",".join(
+        # Join with spaces instead of commas
+        samplesLabel  = lambda wildcards, input: " ".join(
             [os.path.basename(x).replace("_consensus_peaks.bw", "")
              for x in input.bigwigs]
         )
@@ -369,5 +370,5 @@ rule generate_unique_heatmap:
             --sortUsing sum \
             --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
-            --samplesLabel "{params.samplesLabel}"
+            --samplesLabel {params.samplesLabel}
         """
