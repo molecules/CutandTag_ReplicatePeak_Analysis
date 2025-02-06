@@ -356,7 +356,7 @@ rule generate_unique_heatmap:
         samplesLabel  = lambda wildcards, input: " ".join(
             [os.path.basename(x).replace("_consensus_peaks.bw", "")
              for x in input.bigwigs]
-        )
+        ),
         regionLabels  = lambda wildcards, input: " ".join(
             [os.path.basename(x).replace("_unique_MP.bed", "")
              for x in input.uniqueBeds]
