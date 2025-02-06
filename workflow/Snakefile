@@ -50,9 +50,12 @@ rule all:
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
+        expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
         "results/heatmap/Beds_All_Samples.gz",
         "results/heatmap/HeatPlots_All_Samples.png",
         expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
+        "results/heatmap/Beds_Unique_Samples.gz",
+        "results/heatmap/HeatPlots_Unique_Samples.png"
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
@@ -200,7 +203,8 @@ rule midpoint_and_peak_overlaps:
     output:
         # Outputs: midpoint and full overlaps
         midpoint="results/overlaps/MidpointOverlaps.bed",
-        peak="results/overlaps/PeakOverlaps.bed"
+        peak="results/overlaps/PeakOverlaps.bed",
+        unique = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"])))
     params:
         out_dir="results/overlaps/"
     envmodules:
@@ -318,4 +322,42 @@ rule euler_plot_by_mark:
             "{params.colors}" \
             {params.pdf_width} \
             {params.pdf_height}
+        """
+
+##################################################################
+##                 Generate Unique Bed Heatmaps                 ##
+##################################################################
+
+rule generate_unique_heatmap:
+    input:
+        uniqueBeds = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
+        bigwigs = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
+    output:
+        matrix = "results/heatmap/Beds_Unique_Samples.gz",
+        heatmap = "results/heatmap/HeatPlots_Unique_Samples.png"
+    params:
+        before_region = 3000,
+        after_region = 3000,
+        processors = 8,
+        refPointName = "Center",
+        sampleOrder = config["sampleOrder"]
+    envmodules:
+        config["deeptools"]
+    shell:
+        """
+        computeMatrix reference-point \
+            -S {input.bigwigs} \
+            -R {input.uniqueBeds} \
+            --outFileName {output.matrix} \
+            -a {params.after_region} -b {params.before_region} \
+            --numberOfProcessors {params.processors} \
+            --smartLabels
+
+        plotHeatmap \
+            -m {output.matrix} \
+            -out {output.heatmap} \
+            --dpi 1000 \
+            --sortUsing sum \
+            --sortUsingSamples "{params.sampleOrder}" \
+            --refPointLabel "{params.refPointName}"
         """
