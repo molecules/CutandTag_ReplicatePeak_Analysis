@@ -38,6 +38,30 @@ def sets_for_mark_condition(mark, condition, df):
 
 
 ##################################################################
+##                      Toggle HeatPlots                        ##
+##################################################################
+
+# Get the flags from the config (defaut True if not specified)
+generate_consensus_heatplot = config.get("heatplot_all", True)
+generate_unique_heatplot    = config.get("heatplot_unique", True)
+
+# Define consensus heatplot targets conditionally
+consensus_heatplot_targets = []
+if generate_consensus_heatplot:
+    consensus_heatplot_targets = [
+        "results/heatmap/Beds_All_Samples.gz",
+        "results/heatmap/HeatPlots_All_Samples.png"
+    ]
+
+# Define unique heatplot targets conditionally
+unique_heatplot_targets = []
+if generate_unique_heatplot:
+    unique_heatplot_targets = [
+        "results/heatmap/Beds_Unique_Samples.gz",
+        "results/heatmap/HeatPlots_Unique_Samples.png"
+    ]
+
+##################################################################
 ##                          Rule All                            ##
 ##################################################################
 
@@ -52,11 +76,9 @@ rule all:
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
         expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
-        "results/heatmap/Beds_All_Samples.gz",
-        "results/heatmap/HeatPlots_All_Samples.png",
+        consensus_heatplot_targets,
         expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
-        "results/heatmap/Beds_Unique_Samples.gz",
-        "results/heatmap/HeatPlots_Unique_Samples.png"
+        unique_heatplot_targets
 
 ##################################################################
 ##                        MACS2 Peak Calling                    ##
