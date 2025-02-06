@@ -357,6 +357,10 @@ rule generate_unique_heatmap:
             [os.path.basename(x).replace("_consensus_peaks.bw", "")
              for x in input.bigwigs]
         )
+        regionLabels  = lambda wildcards, input: " ".join(
+            [os.path.basename(x).replace("_unique_MP.bed", "")
+             for x in input.uniqueBeds]
+        )
     envmodules:
         config["deeptools"]
     shell:
@@ -375,5 +379,6 @@ rule generate_unique_heatmap:
             --sortUsing sum \
             --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
-            --samplesLabel {params.samplesLabel}
+            --samplesLabel {params.samplesLabel} \
+            --regionsLabel {params.regionLabels}
         """
