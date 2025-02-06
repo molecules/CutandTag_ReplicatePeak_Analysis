@@ -340,7 +340,6 @@ rule generate_unique_heatmap:
         after_region = 3000,
         processors = 8,
         refPointName = "Center",
-        regionsLabel = "UniqueMidpoints",
         sampleOrder = config["sampleOrder"]
     envmodules:
         config["deeptools"]
@@ -360,6 +359,5 @@ rule generate_unique_heatmap:
             --dpi 1000 \
             --sortUsing sum \
             --sortUsingSamples "{params.sampleOrder}" \
-            --refPointLabel "{params.refPointName}" \
-            --regionsLabel "{params.regionsLabel}"
+            --refPointLabel "{params.refPointName}"
         """
