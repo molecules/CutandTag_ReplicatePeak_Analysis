@@ -9,6 +9,7 @@ configfile: "config/config.yml"
 ##################################################################
 
 import pandas as pd
+import os
 
 # Read the CSV file and set an index using the values in the "sample" column.
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
@@ -328,10 +329,13 @@ rule euler_plot_by_mark:
 ##                 Generate Unique Bed Heatmaps                 ##
 ##################################################################
 
+# preserve original sample order
+unique_sets_in_order = list(dict.fromkeys(samples_table["set"].tolist()))
+
 rule generate_unique_heatmap:
     input:
-        uniqueBeds = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"]))),
-        bigwigs   = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"])))
+        uniqueBeds = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=unique_sets_in_order),
+        bigwigs   = [f"results/consensusPeaks/{s}_consensus_peaks.bw" for s in unique_sets_in_order]
     output:
         matrix  = "results/heatmap/Beds_Unique_Samples.gz",
         heatmap = "results/heatmap/HeatPlots_Unique_Samples.png"
@@ -340,13 +344,12 @@ rule generate_unique_heatmap:
         after_region  = 3000,
         processors    = 8,
         refPointName  = "Center",
-        sampleOrder   = config["sampleOrder"],
+        # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" for deepTools:
+        sampleOrder   = config["sampleOrder"].replace(",", " "),
+        # Simply extract the sample names in the order the files are provided:
         samplesLabel  = lambda wildcards, input: ",".join(
-            sorted(
-                [os.path.basename(x).replace("_consensus_peaks.bw", "")
-                 for x in input.bigwigs],
-                key=lambda s: config["sampleOrder"].index(s) if s in config["sampleOrder"] else 9999
-            )
+            [os.path.basename(x).replace("_consensus_peaks.bw", "")
+             for x in input.bigwigs]
         )
     envmodules:
         config["deeptools"]
@@ -365,7 +368,7 @@ rule generate_unique_heatmap:
             -out {output.heatmap} \
             --dpi 1000 \
             --sortUsing sum \
-            --sortUsingSamples "{params.sampleOrder}" \
+            --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
             --samplesLabel "{params.samplesLabel}"
         """
