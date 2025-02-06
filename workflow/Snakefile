@@ -220,30 +220,35 @@ rule midpoint_and_peak_overlaps:
 ##                Generate Heatmap for All Samples              ##
 ##################################################################
 
-# Convert your CSV column into a list in CSV order
+# Convert samples CSV column into a list in CSV order
 all_sets = samples_table["set"]  # e.g., ['H3K27ac_C', 'H3K27ac_T', 'H3K27ac_C', ...]
-
 # Retain only unique sets in the first-seen order
 unique_sets_in_order = list(dict.fromkeys(all_sets))
 
 rule generate_heatmap:
     input:
-        # Input bigWig files (all consensus peaks bigwigs)
+        # Input BigWig files (all consensus peaks bigwigs)
         bigwigs = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=unique_sets_in_order),
         # Input MidpointOverlaps BED file
-        midpoints="results/overlaps/MidpointOverlaps.bed"
+        midpoints = "results/overlaps/MidpointOverlaps.bed"
     output:
         # Output matrix and heatmap
-        matrix="results/heatmap/Beds_All_Samples.gz",
-        heatmap="results/heatmap/HeatPlots_All_Samples.png"
+        matrix = "results/heatmap/Beds_All_Samples.gz",
+        heatmap = "results/heatmap/HeatPlots_All_Samples.png"
     params:
-        # Extend regions before and after the midpoint
-        before_region=3000,
-        after_region=3000,
-        processors=8,
-        refPointName="Center",
-        regionsName="Midpoints",
-        sampleOrder=config["sampleOrder"]
+        before_region = 3000,
+        after_region  = 3000,
+        processors    = 8,
+        refPointName  = "Center",
+        regionsName   = "Midpoints",
+        # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" so deepTools accepts it
+        sampleOrder   = config["sampleOrder"].replace(",", " "),
+        # Generate sample labels by extracting the basename from each bigWig file,
+        # joined with spaces so that plotHeatmap sees multiple labels.
+        samplesLabel  = lambda wildcards, input: " ".join(
+            [os.path.basename(x).replace("_consensus_peaks.bw", "")
+             for x in input.bigwigs]
+        )
     envmodules:
         config["deeptools"]
     shell:
@@ -255,17 +260,17 @@ rule generate_heatmap:
             -R {input.midpoints} \
             --outFileName {output.matrix} \
             -a {params.after_region} -b {params.before_region} \
-            --numberOfProcessors {params.processors} \
-            --smartLabels
+            --numberOfProcessors {params.processors}
 
         plotHeatmap \
             -m {output.matrix} \
             -out {output.heatmap} \
             --dpi 1000 \
             --sortUsing sum \
-            --sortUsingSamples "{params.sampleOrder}" \
+            --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
-            --regionsLabel "{params.regionsName}"
+            --regionsLabel "{params.regionsName}" \
+            --samplesLabel {params.samplesLabel}
         """
 
 ##################################################################
