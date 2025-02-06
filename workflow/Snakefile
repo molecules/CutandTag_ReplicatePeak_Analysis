@@ -329,7 +329,7 @@ rule euler_plot_by_mark:
 ##                 Generate Unique Bed Heatmaps                 ##
 ##################################################################
 
-# preserve original sample order
+# Preserve the original order from samples table:
 unique_sets_in_order = list(dict.fromkeys(samples_table["set"].tolist()))
 
 rule generate_unique_heatmap:
@@ -346,7 +346,7 @@ rule generate_unique_heatmap:
         refPointName  = "Center",
         # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" for deepTools:
         sampleOrder   = config["sampleOrder"].replace(",", " "),
-        # Simply extract the sample names in the order the files are provided:
+        # Generate sample labels by extracting the basename (in the order of the input bigWig files)
         samplesLabel  = lambda wildcards, input: ",".join(
             [os.path.basename(x).replace("_consensus_peaks.bw", "")
              for x in input.bigwigs]
@@ -360,8 +360,7 @@ rule generate_unique_heatmap:
             -R {input.uniqueBeds} \
             --outFileName {output.matrix} \
             -a {params.after_region} -b {params.before_region} \
-            --numberOfProcessors {params.processors} \
-            --smartLabels
+            --numberOfProcessors {params.processors}
 
         plotHeatmap \
             -m {output.matrix} \
