@@ -6,7 +6,7 @@ genome: "mm"
 # For human genome - "hs" / for mouse genome - "mm"
 
 ## sample order (indicate which sample should set the order of the midpoints.bed in heatmap [1 to nSamples])
-sampleOrder: 1
+sampleOrder: 1,2,3,4,5,6
 
 ## effective genome size
 effective_genome_size: 2730871774
