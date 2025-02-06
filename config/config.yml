@@ -2,8 +2,8 @@
 samples_csv: "config/samples.csv"
 
 ## turn on/off heat plots
-heatplot_all: true
-heatplot_unique: true
+heatplot_all: True
+heatplot_unique: True
 
 ## genome-of-interest
 genome: "mm"
