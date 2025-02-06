@@ -241,7 +241,7 @@ rule generate_heatmap:
         after_region=3000,
         processors=8,
         refPointName="Center",
-        regionsName="Midpoints",
+        regionsName="All Midpoints",
         sampleOrder=config["sampleOrder"]
     envmodules:
         config["deeptools"]
