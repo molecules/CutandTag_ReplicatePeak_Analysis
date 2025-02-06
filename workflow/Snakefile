@@ -240,7 +240,7 @@ rule generate_heatmap:
         after_region  = 3000,
         processors    = 8,
         refPointName  = "Center",
-        regionsName   = "Midpoints",
+        regionsName   = "All Midpoints",
         # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" so deepTools accepts it
         sampleOrder   = config["sampleOrder"].replace(",", " "),
         # Generate sample labels by extracting the basename from each bigWig file,
@@ -349,7 +349,6 @@ rule generate_unique_heatmap:
         after_region  = 3000,
         processors    = 8,
         refPointName  = "Center",
-        labelRotation = 90,
         # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" for deepTools:
         sampleOrder   = config["sampleOrder"].replace(",", " "),
         # Generate sample labels by extracting the basename (in the order of the input bigWig files)
@@ -376,6 +375,5 @@ rule generate_unique_heatmap:
             --sortUsing sum \
             --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
-            --samplesLabel {params.samplesLabel} \
-            --labelRotation {params.labelRotation}
+            --samplesLabel {params.samplesLabel}
         """
