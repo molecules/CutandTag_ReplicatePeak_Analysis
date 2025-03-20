@@ -8,8 +8,8 @@
 ###############################################
 
 # Load required packages
+library(data.table)   # for fread
 library(GenomicRanges)
-library(rtracklayer)  # for import BED
 library(eulerr)
 library(ggplotify)
 library(magrittr)
@@ -26,9 +26,29 @@ colors     <- strsplit(args[6], ",")[[1]]   # split the comma-separated hex code
 pdf_width  <- as.numeric(args[7])
 pdf_height <- as.numeric(args[8])
 
-# A simple function to read a BED file into a GRanges
+# A simple function to read a BED file into a GRanges,
+# making sure coordinates are integers.
 read_bed_gr <- function(bed_file) {
-  import(bed_file, format = "BED")
+  # Read as tab-delimited (no header) with data.table::fread
+  dt <- fread(bed_file, header = FALSE)
+  # Convert columns 2 and 3 to integer (round or floor, your choice)
+  dt[[2]] <- as.integer(round(as.numeric(dt[[2]])))
+  dt[[3]] <- as.integer(round(as.numeric(dt[[3]])))
+  
+  # Create a GRanges; 
+  # Adjust to match your BED’s columns if needed.
+  gr <- GRanges(
+    seqnames = dt[[1]],
+    ranges   = IRanges(start = dt[[2]], end = dt[[3]]),
+    strand   = if (ncol(dt) >= 6) dt[[6]] else "*"
+  )
+  
+  # If there are additional columns, store them in mcols()
+  if (ncol(dt) > 3) {
+    mcols(gr) <- dt[, -(1:3)]
+  }
+  
+  gr
 }
 
 # Read all BEDs into a list of GRanges
