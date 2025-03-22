@@ -134,7 +134,7 @@ rule call_macs2_on_merged_bam:
     input:
         bam="results/mergedBam/{Set}_merged.bam"
     output:
-        peaks="results/mergedPeaks/{Set}_macs2_merged_peaks.narrowPeak"
+        peaks="results/mergedPeaks/{Set}_merged_0.05_peaks.narrowPeak"
     params:
         genome=config["genome"],
         qvalue=config["macs2_qvalue"],
