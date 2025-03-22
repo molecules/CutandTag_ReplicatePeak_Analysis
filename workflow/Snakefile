@@ -216,27 +216,33 @@ rule create_bigwig_from_consensus:
 
 
 ##################################################################
-##            Make Euler Plot of Overlaps with Merged           ##
+##             Make Euler Plot of Overlaps from Beds            ##
 ##################################################################
 
-rule make_euler_plot_of_overlaps_with_merged:
+rule make_euler_plot_of_overlaps_from_beds:
     input:
-        merged_rds="results/mergedPeaks/{Set}_merged_peaks.rds"
+        beds=lambda wc: [
+            f"results/macs2Peaks/{sample}_0.05_peaks.narrowPeak"
+            for sample in filter_sample_by_set(wc.Set, samples_table)
+        ]
     output:
-        euler_rds="results/eulerPlot/{Set}_eulerPlot.rds",
-        euler_pdf="results/eulerPlot/{Set}_eulerPlot.pdf"
+        rds="results/eulerPlot/{Set}_eulerPlot.rds",
+        pdf="results/eulerPlot/{Set}_eulerPlot.pdf"
     params:
-        euler_fontsize=config["EulerFontSize"],
-        euler_colors=config["EulerColors1"],
+        font_size=config["EulerFontSize"],
+        colors=config["EulerColors1"],
         pdf_width=config["EulerWidth"],
-        pdf_height=config["EulerHeight"]
+        pdf_height=config["EulerHeight"],
+        set_names=lambda wc: ",".join(filter_sample_by_set(wc.Set, samples_table))
     envmodules:
         config["R"],
         config["bioconductor"]
     shell:
         """
-        Rscript scripts/makeEulerOfOverlappingPeaks.R {input.merged_rds} {output.euler_rds} {output.euler_pdf} \
-        {params.euler_fontsize} "{params.euler_colors}" {params.pdf_width} {params.pdf_height}
+        BED_FILES=$(echo {input.beds} | tr ' ' ',')
+        Rscript scripts/makeEulerPlotOfBedOverlaps.R "$BED_FILES" "{params.set_names}" \
+            {output.rds} {output.pdf} {params.font_size} "{params.colors}" \
+            {params.pdf_width} {params.pdf_height}
         """
 
 
