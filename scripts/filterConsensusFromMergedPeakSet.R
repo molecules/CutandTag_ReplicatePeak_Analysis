@@ -1,33 +1,75 @@
 #!/usr/bin/env Rscript
 
 # Author: Kevin Boyd
-# Purpose: Filter merged peaks to retain only those supported by >= n replicates
-# Usage:
-# Rscript filterConsensusFromMergedPeakSet.R merged_peaks.bed rep1.bed rep2.bed rep3.bed 2 output_consensus.bed
+# Date: March 22, 2025
+# Purpose: Filter merged peak set to include only those peaks that overlap with a minimum
+# number of replicate peaks, and write the result as a BED file.
 
-library(GenomicRanges)
-library(rtracklayer)
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(data.table)
+  library(stringr)
+})
 
+# Parse command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
-input_files <- args[1:(length(args) - 2)]
-min_overlap <- as.integer(args[length(args) - 1])
-output_file <- args[length(args)]
 
-# Load merged peak set (first file)
-merged_peaks_file <- input_files[1]
-merged_peaks <- import(merged_peaks_file, format = "BED")
+if (length(args) < 3) {
+  stop("Usage: Rscript filterConsensusFromMergedPeakSet.R merged.narrowPeak rep1.narrowPeak rep2.narrowPeak ... min_overlap out.bed")
+}
 
-# Load replicate peak sets
-replicate_files <- input_files[-1]
-replicate_grs <- lapply(replicate_files, function(f) import(f, format = "BED"))
+merged_peak_file <- args[1]
+replicate_files  <- args[2:(length(args) - 2)]
+min_overlap      <- as.numeric(args[length(args) - 1])
+output_bed       <- args[length(args)]
 
-# Count how many replicates each merged peak overlaps
-overlap_counts <- sapply(replicate_grs, function(gr) countOverlaps(merged_peaks, gr) > 0)
-overlap_matrix <- as.data.frame(overlap_counts)
-support_counts <- rowSums(overlap_matrix)
+# ---- Helper function to read narrowPeak files as GRanges ----
 
-# Filter peaks supported by >= min_overlap replicates
-consensus_peaks <- merged_peaks[support_counts >= min_overlap]
+narrowpeak_colnames <- c("chrom", "start", "end", "name", "score", "strand", "signalValue", "pValue", "qValue", "peak")
+narrowpeak_colclasses <- c("character", "integer", "integer", "character", "integer", "character",
+                           "numeric", "numeric", "numeric", "integer")
 
-# Export to BED
-export.bed(consensus_peaks, output_file)
+read_narrowpeak_as_granges <- function(path) {
+  dt <- fread(path, header = FALSE, sep = "\t", col.names = narrowpeak_colnames, colClasses = narrowpeak_colclasses)
+  # Clean up strand: replace '.' with '*'
+  dt$strand[!dt$strand %in% c("+", "-", "*")] <- "*"
+  
+  gr <- GRanges(
+    seqnames = dt$chrom,
+    ranges   = IRanges(start = dt$start, end = dt$end),
+    strand   = dt$strand
+  )
+  gr
+}
+
+# ---- Load merged and replicate peak sets ----
+
+merged_gr <- read_narrowpeak_as_granges(merged_peak_file)
+replicate_gr_list <- lapply(replicate_files, read_narrowpeak_as_granges)
+
+# ---- For each merged peak, count how many replicates it overlaps ----
+
+overlap_counts <- sapply(replicate_gr_list, function(rep_gr) {
+  overlaps <- countOverlaps(merged_gr, rep_gr)
+  as.numeric(overlaps > 0)
+})
+
+# Sum across all replicates to get total overlap support
+support_counts <- rowSums(overlap_counts)
+
+# Filter peaks supported by at least min_overlap replicates
+consensus_gr <- merged_gr[support_counts >= min_overlap]
+
+# ---- Write filtered peaks to output BED file ----
+
+# Create data.frame for writing as BED (chrom, start, end)
+consensus_bed <- data.frame(
+  seqnames = as.character(seqnames(consensus_gr)),
+  start    = start(consensus_gr),
+  end      = end(consensus_gr)
+)
+
+# Write without quotes and no row/column names
+fwrite(consensus_bed, file = output_bed, sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+
+message("Consensus peaks written to: ", output_bed)
