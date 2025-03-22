@@ -66,7 +66,7 @@ rule all:
     input:
         expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
         expand("results/mergedBam/{Set}_merged.bam", Set=list(set(samples_table["set"]))),
-        expand("results/mergedPeaks/{Set}_merged_peaks.narrowPeak", Set=list(set(samples_table["set"]))),
+        expand("results/mergedPeaks/{Set}_merged_0.05_peaks.narrowPeak", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_filtered.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
