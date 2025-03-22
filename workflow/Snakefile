@@ -110,7 +110,10 @@ rule call_peaks_with_macs2:
 
 rule merge_bams_per_set:
     input:
-        lambda wildcards: expand("results/aligned/{sample}.bam", sample=filter_sample_by_set(wildcards.Set, samples_table))
+        lambda wildcards: [
+            samples_table.loc[sample, "bam"]
+            for sample in filter_sample_by_set(wildcards.Set, samples_table)
+        ]
     output:
         bam="results/mergedBam/{Set}_merged.bam",
         bai="results/mergedBam/{Set}_merged.bam.bai"
