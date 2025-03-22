@@ -61,7 +61,7 @@ create_bigwig_from_consensus:
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
     error: results/errors/{rule}.{wildcards.Set}.slurm-%x.%A.%a.err
 
-make_euler_plot_of_overlaps_with_merged:
+make_euler_plot_of_overlaps_from_beds:
     cpus-per-task: 4
     mem: 16G
     time: 02:00:00
