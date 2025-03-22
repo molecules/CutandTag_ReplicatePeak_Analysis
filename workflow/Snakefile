@@ -1,8 +1,9 @@
 configfile: "config/config.yml"
 
 # Author: Kevin Boyd
-# Date: Dec 3, 2024
+# Date: March 21, 2025
 # Adapted scripts from: https://github.com/SansamLab-Pipelines-Genomics/ReplicatePeakAnalyzer
+
 
 ##################################################################
 ##                    Define input functions                    ##
@@ -14,25 +15,20 @@ import os
 # Read the CSV file and set an index using the values in the "sample" column.
 samples_table = pd.read_csv(config["samples_csv"]).set_index("sample", drop=False)
 
-# Expand function to extract BAM paths
-bam_paths = expand("{bam}", bam=samples_table["bam"].tolist())
+# define sets
+all_sets = samples_table["set"]
+unique_sets_in_order = list(dict.fromkeys(all_sets))
 
-# Filter samples by their set
-def filter_sample_by_set(Set, samples_table):
-    """
-    Filter the samples_table to include only the samples
-    belonging to a given 'Set' and return their names.
-    """
-    filtered_rows = samples_table[samples_table["set"] == Set]
-    return list(set(filtered_rows["sample"].tolist()))
-
+# define unique marks / conditions
 unique_marks = list(dict.fromkeys(samples_table["mark"]))
 unique_conditions = list(dict.fromkeys(samples_table["condition"]))
 
+# filter samples by their set
+def filter_sample_by_set(Set, samples_table):
+    return list(set(samples_table[samples_table["set"] == Set]["sample"]))
+
+# filter sets by condition
 def sets_for_mark_condition(mark, condition, df):
-    """
-    Return a list of unique 'set' values where (mark, condition) match.
-    """
     subset = df[(df["mark"] == mark) & (df["condition"] == condition)]
     return list(set(subset["set"]))
 
@@ -43,7 +39,7 @@ def sets_for_mark_condition(mark, condition, df):
 
 # Get the flags from the config (defaut True if not specified)
 generate_consensus_heatplot = config.get("heatplot_all", True)
-generate_unique_heatplot    = config.get("heatplot_unique", True)
+generate_unique_heatplot = config.get("heatplot_unique", True)
 
 # Define consensus heatplot targets conditionally
 consensus_heatplot_targets = []
@@ -61,17 +57,18 @@ if generate_unique_heatplot:
         "results/heatmap/HeatPlots_Unique_Samples.png"
     ]
 
+
 ##################################################################
 ##                          Rule All                            ##
 ##################################################################
 
 rule all:
     input:
-        # Ensure BAM and BigWig files for consensus peaks are created
         expand("results/macs2Peaks/{sample}_0.05_peaks.narrowPeak", sample=samples_table.index),
-        expand("results/mergedPeaks/{Set}_merged_peaks.rds", Set=list(set(samples_table["set"]))),
+        expand("results/mergedBam/{Set}_merged.bam", Set=list(set(samples_table["set"]))),
+        expand("results/mergedPeaks/{Set}_macs2_merged_peaks.narrowPeak", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"]))),
-        expand("results/consensusPeaks/{Set}_consensus_peaks.bam", Set=list(set(samples_table["set"]))),
+        expand("results/consensusPeaks/{Set}_filtered.bam", Set=list(set(samples_table["set"]))),
         expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=list(set(samples_table["set"]))),
         expand("results/eulerPlot/{Set}_eulerPlot.pdf", Set=list(set(samples_table["set"]))),
         "results/overlaps/MidpointOverlaps.bed",
@@ -80,8 +77,9 @@ rule all:
         expand("results/eulerPlotMarkByCondition/{mark}_eulerPlot.pdf", mark=unique_marks),
         unique_heatplot_targets
 
+
 ##################################################################
-##                        MACS2 Peak Calling                    ##
+##                 MACS2 Peak Calling Individual                ##
 ##################################################################
 
 rule call_peaks_with_macs2:
@@ -102,36 +100,64 @@ rule call_peaks_with_macs2:
         macs2 callpeak -t {input.bam} \
         -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
         --outdir {params.output_dir} -q {params.qvalue} --keep-dup all --nomodel \
-        2>{params.output_dir}/{params.sample_name}_macs2Peak_summary.txt
+        2>{output.summary}
         """
 
+
 ##################################################################
-##                     Generate Merged Peaks                    ##
+##                       Merge Bams By Set                      ##
 ##################################################################
 
-rule generate_merged_peaks:
+rule merge_bams_per_set:
     input:
-        lambda wildcards: expand(
+        lambda wildcards: expand("results/aligned/{sample}.bam", sample=filter_sample_by_set(wildcards.Set, samples_table))
+    output:
+        bam="results/mergedBam/{Set}_merged.bam",
+        bai="results/mergedBam/{Set}_merged.bam.bai"
+    envmodules:
+        config["samtools"]
+    shell:
+        """
+        samtools merge {output.bam} {input}
+        samtools index {output.bam}
+        """
+
+
+##################################################################
+##                   MACS2 Peak Calling Merged                  ##
+##################################################################
+
+rule call_macs2_on_merged_bam:
+    input:
+        bam="results/mergedBam/{Set}_merged.bam"
+    output:
+        peaks="results/mergedPeaks/{Set}_macs2_merged_peaks.narrowPeak"
+    params:
+        genome=config["genome"],
+        qvalue=config["macs2_qvalue"],
+        sample_name="{Set}_merged",
+        outdir="results/mergedPeaks/"
+    envmodules:
+        config["macs2"]
+    shell:
+        """
+        macs2 callpeak -t {input.bam} \
+        -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
+        --outdir {params.outdir} -q {params.qvalue} --keep-dup all --nomodel
+        """
+
+
+##################################################################
+##              Generate Consensus Peaks by Overlap             ##
+##################################################################
+
+rule generate_consensus_peaks_by_overlap:
+    input:
+        merged_peaks="results/mergedPeaks/{Set}_macs2_merged_peaks.narrowPeak",
+        replicate_peaks=lambda wildcards: expand(
             "results/macs2Peaks/{sample}_0.05_peaks.narrowPeak",
             sample=filter_sample_by_set(wildcards.Set, samples_table)
         )
-    output:
-        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
-    envmodules:
-        config["R"],
-        config["bioconductor"]
-    shell:
-        """
-        Rscript scripts/generateMergedPeaks.R {input} {output.merged}
-        """
-
-##################################################################
-##                Make Bed of Reproducible Peaks                ##
-##################################################################
-
-rule make_bed_of_reproducible_peaks:
-    input:
-        merged="results/mergedPeaks/{Set}_merged_peaks.rds"
     output:
         consensus="results/consensusPeaks/{Set}_consensus_peaks.bed"
     params:
@@ -141,43 +167,37 @@ rule make_bed_of_reproducible_peaks:
         config["bioconductor"]
     shell:
         """
-        Rscript scripts/generateConsensusPeaks.R {input.merged} {params.min_overlap} {output.consensus}
+        Rscript scripts/filterConsensusFromMergedPeakSet.R {input.merged_peaks} {input.replicate_peaks} {params.min_overlap} {output.consensus}
         """
 
+
 ##################################################################
-##                 Create BAM from Consensus Peaks              ##
+##                  Extract Reads for Consensus                 ##
 ##################################################################
 
-rule create_bam_from_consensus:
+rule extract_reads_for_consensus:
     input:
-        bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
+        merged_bam="results/mergedBam/{Set}_merged.bam",
+        consensus_bed="results/consensusPeaks/{Set}_consensus_peaks.bed"
     output:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam",
-        sorted_bed="results/consensusPeaks/{Set}_consensus_peaks_sorted.bed"
-    params:
-        genome_file=config["chrom_sizes"]
+        filtered_bam="results/consensusPeaks/{Set}_filtered.bam",
+        index="results/consensusPeaks/{Set}_filtered.bam.bai"
     envmodules:
-        config["bedtools"],
         config["samtools"]
     shell:
         """
-        # 1) Sort the original BED file
-        bedtools sort -i {input.bed} > {output.sorted_bed}
-
-        # 2) Convert sorted BED -> BAM, then pipe to samtools sort -> final coordinate-sorted BAM
-        bedtools bedtobam -i {output.sorted_bed} -g {params.genome_file} | samtools sort -o {output.bam}
-
-        # 3) Index the coordinate-sorted BAM
-        samtools index {output.bam}
+        samtools view -b {input.merged_bam} -L {input.consensus_bed} > {output.filtered_bam}
+        samtools index {output.filtered_bam}
         """
 
+
 ##################################################################
-##               Create BigWig from Consensus Peaks             ##
+##                  Create BigWig from Consensus                ##
 ##################################################################
 
 rule create_bigwig_from_consensus:
     input:
-        bam="results/consensusPeaks/{Set}_consensus_peaks.bam"
+        bam="results/consensusPeaks/{Set}_filtered.bam"
     output:
         bigwig="results/consensusPeaks/{Set}_consensus_peaks.bw"
     params:
@@ -191,8 +211,9 @@ rule create_bigwig_from_consensus:
         --binSize {params.bin_size} --effectiveGenomeSize {params.genome_size} --normalizeUsing CPM
         """
 
+
 ##################################################################
-##                  Make Euler with Merged Peaks                ##
+##            Make Euler Plot of Overlaps with Merged           ##
 ##################################################################
 
 rule make_euler_plot_of_overlaps_with_merged:
@@ -215,19 +236,18 @@ rule make_euler_plot_of_overlaps_with_merged:
         {params.euler_fontsize} "{params.euler_colors}" {params.pdf_width} {params.pdf_height}
         """
 
+
 ##################################################################
 ##                   Midpoint and Peak Overlaps                 ##
 ##################################################################
 
 rule midpoint_and_peak_overlaps:
     input:
-        # Collect reproducible peaks BED files (already sorted by earlier rules)
         reproducible_beds=expand("results/consensusPeaks/{Set}_consensus_peaks.bed", Set=list(set(samples_table["set"])))
     output:
-        # Outputs: midpoint and full overlaps
         midpoint="results/overlaps/MidpointOverlaps.bed",
         peak="results/overlaps/PeakOverlaps.bed",
-        unique = expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"])))
+        unique=expand("results/consensusPeaks/{Set}_unique_MP.bed", Set=list(set(samples_table["set"])))
     params:
         out_dir="results/overlaps/"
     envmodules:
@@ -238,61 +258,41 @@ rule midpoint_and_peak_overlaps:
         Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.out_dir}
         """
 
-##################################################################
-##                Generate Heatmap for All Samples              ##
-##################################################################
 
-# Convert samples CSV column into a list in CSV order
-all_sets = samples_table["set"]  # e.g., ['H3K27ac_C', 'H3K27ac_T', 'H3K27ac_C', ...]
-# Retain only unique sets in the first-seen order
-unique_sets_in_order = list(dict.fromkeys(all_sets))
+##################################################################
+##               Generate Heatmap For All Samples               ##
+##################################################################
 
 rule generate_heatmap:
     input:
-        # Input BigWig files (all consensus peaks bigwigs)
-        bigwigs = expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=unique_sets_in_order),
-        # Input MidpointOverlaps BED file
-        midpoints = "results/overlaps/MidpointOverlaps.bed"
+        bigwigs=expand("results/consensusPeaks/{Set}_consensus_peaks.bw", Set=unique_sets_in_order),
+        midpoints="results/overlaps/MidpointOverlaps.bed"
     output:
-        # Output matrix and heatmap
-        matrix = "results/heatmap/Beds_All_Samples.gz",
-        heatmap = "results/heatmap/HeatPlots_All_Samples.png"
+        matrix="results/heatmap/Beds_All_Samples.gz",
+        heatmap="results/heatmap/HeatPlots_All_Samples.png"
     params:
-        before_region = 3000,
-        after_region  = 3000,
-        processors    = 8,
-        refPointName  = "Center",
-        regionsName   = "All Midpoints",
-        # Convert "1,2,3,4,5,6" to "1 2 3 4 5 6" so deepTools accepts it
-        sampleOrder   = config["sampleOrder"].replace(",", " "),
-        # Generate sample labels by extracting the basename from each bigWig file,
-        # joined with spaces so that plotHeatmap sees multiple labels.
-        samplesLabel  = lambda wildcards, input: " ".join(
-            [os.path.basename(x).replace("_consensus_peaks.bw", "")
-             for x in input.bigwigs]
+        before_region=3000,
+        after_region=3000,
+        processors=8,
+        refPointName="Center",
+        regionsName="All Midpoints",
+        sampleOrder=config["sampleOrder"].replace(",", " "),
+        samplesLabel=lambda wildcards, input: " ".join(
+            [os.path.basename(x).replace("_consensus_peaks.bw", "") for x in input.bigwigs]
         )
     envmodules:
         config["deeptools"]
     shell:
         """
-        echo "Using sampleOrder: {params.sampleOrder}"
+        computeMatrix reference-point -S {input.bigwigs} -R {input.midpoints} \
+        --outFileName {output.matrix} -a {params.after_region} -b {params.before_region} \
+        --numberOfProcessors {params.processors}
 
-        computeMatrix reference-point \
-            -S {input.bigwigs} \
-            -R {input.midpoints} \
-            --outFileName {output.matrix} \
-            -a {params.after_region} -b {params.before_region} \
-            --numberOfProcessors {params.processors}
-
-        plotHeatmap \
-            -m {output.matrix} \
-            -out {output.heatmap} \
-            --dpi 1000 \
-            --sortUsing sum \
-            --sortUsingSamples {params.sampleOrder} \
-            --refPointLabel "{params.refPointName}" \
-            --regionsLabel "{params.regionsName}" \
-            --samplesLabel {params.samplesLabel}
+        plotHeatmap -m {output.matrix} -out {output.heatmap} \
+        --dpi 1000 --sortUsing sum --sortUsingSamples {params.sampleOrder} \
+        --refPointLabel "{params.refPointName}" \
+        --regionsLabel "{params.regionsName}" \
+        --samplesLabel {params.samplesLabel}
         """
 
 ##################################################################
