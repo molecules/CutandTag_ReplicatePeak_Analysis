@@ -121,8 +121,19 @@ rule merge_bams_per_set:
         config["samtools"]
     shell:
         """
-        samtools merge {output.bam} {input}
+        TMP_DIR=$(mktemp -d)
+        TMP_SORTED_BAMS=""
+
+        for bam in {input}; do
+            base=$(basename $bam .bam)
+            sorted_bam=$TMP_DIR/${{base}}_sorted.bam
+            samtools sort -o $sorted_bam $bam
+            TMP_SORTED_BAMS="$TMP_SORTED_BAMS $sorted_bam"
+        done
+
+        samtools merge {output.bam} $TMP_SORTED_BAMS
         samtools index {output.bam}
+        rm -r $TMP_DIR
         """
 
 
