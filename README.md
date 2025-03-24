@@ -30,7 +30,7 @@
   Consensus peaks are processed to determine their midpoints and identify overlaps across all sets. This provides a standardized reference point for comparing distributions and regional enrichments.
 
 - **High-Resolution Heatmaps of Signal Intensity**:
-  The pipeline generates heatmaps centered on consensus peak midpoints. These plots visualize the distribution and intensity of signal across replicates, conditions, or sample sets, making trends in coverage and peak architecture easy to interpret. Heatmaps are customizable in the `config.yml` along with the ability to toggle them on and off. In the `sample_order` the first sample will set the order of the bed file in the heatmap.
+  The pipeline generates heatmaps centered on consensus peak midpoints. These plots visualize the distribution and intensity of signal across replicates, conditions, or sample sets, making trends in coverage and peak architecture easy to interpret. Heatmaps are customizable in the `config.yml` along with the ability to toggle them on and off. In the `sampleOrder` section the first sample will set the order of the bed file in the heatmap.
 
 # 2) Intended Use Case
 This pipeline is ideal for researchers who have already processed their Cut-and-Tag data through preliminary steps such as quality control, alignment, and filtering (e.g., by using [CutandTag_Analysis_Snakemake](https://github.com/JK-Cobre-Help/CutandTag_Analysis_Snakemake)). After obtaining high-quality aligned BAM files, you can use CutAndTag_ReplicatePeak_Analysis to:
