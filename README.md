@@ -75,7 +75,7 @@ The pipeline relies on bioinformatics tools, including:
 - **MACS2** for peak calling
 - **bedtools** and samtools for peak and alignment format conversions
 - **deeptools** for coverage and matrix computation, as well as for generating heatmaps
-- **R** with **Bioconductor** packages for merging peaks, generating consensus sets, and creating **Euler** diagrams
+- **R** with **Bioconductor** packages for merging peaks, checking overlap, creating midpoints, and creating **Euler** diagrams
 
 # 5) Example Data
 A compact, pre-processed dataset aligned to mm10 is included in this repository to quickly test the pipeline and validate that your environment is set up correctly. This small example replicates the pipeline’s key steps from peak calling through to final visualization. Visualization examlpes are shown below in section 7.
