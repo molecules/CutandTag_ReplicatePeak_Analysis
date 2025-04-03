@@ -28,7 +28,7 @@ merge_bams_per_set:
 call_macs2_on_merged_bam:
     cpus-per-task: 4
     mem: 32G
-    time: 04:00:00
+    time: 08:00:00
     cores: 4
     name: "{rule}.{wildcards.Set}"
     output: results/logs/{rule}.{wildcards.Set}.slurm-%x.%A.%a.log
