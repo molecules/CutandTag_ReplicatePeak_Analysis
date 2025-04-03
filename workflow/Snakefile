@@ -319,21 +319,25 @@ rule generate_heatmap:
 ##                Euler Plot Conditions by Mark                 ##
 ##################################################################
 
-def conditions_for_mark(mark, df):
-    subset = df[df["mark"] == mark]
-    return sorted(set(subset["condition"]))
+# Get unique (mark, condition) combinations in order
+def mark_condition_combos(df):
+    return sorted(set(zip(df["mark"], df["condition"])))
 
+# Get the sets that correspond to a mark+condition combo
+def sets_for_mark_condition(mark, condition, df):
+    return sorted(set(df[(df["mark"] == mark) & (df["condition"] == condition)]["set"]))
+
+# Build paths to the consensus peak BEDs for each condition of a mark
 def bed_paths_for_mark(mark, df):
-    # Build the list of .bed files for each condition
-    conds = conditions_for_mark(mark, df)
-    return [f"results/consensusPeaks/{mark}_{c}_consensus_peaks.bed" for c in conds]
+    conditions = sorted(set(df[df["mark"] == mark]["condition"]))
+    return [
+        f"results/consensusPeaks/{sets_for_mark_condition(mark, cond, df)[0]}_consensus_peaks.bed"
+        for cond in conditions
+    ]
 
+# Just return the condition labels, like "C,T"
 def joined_conditions_for_mark(wc):
-    """
-    wc is the wildcard object; wc.mark is the current 'mark' value.
-    We return a single comma-separated string, e.g. "C,T" or "C,T,X".
-    """
-    return ",".join(conditions_for_mark(wc.mark, samples_table))
+    return ",".join(sorted(set(samples_table[samples_table["mark"] == wc.mark]["condition"])))
 
 rule euler_plot_by_mark:
     input:
