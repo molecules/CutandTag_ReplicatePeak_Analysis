@@ -124,22 +124,22 @@ rule merge_bams_per_set:
     log:
         "results/logs/merge_bams_per_set.{Set}.snakemake.log"
     shell:
-    """
-    {{
-        TMP_DIR=$(mktemp -d)
-        TMP_SORTED_BAMS=""
-
-        for bam in {input}; do
-            base=$(basename $bam .bam)
-            sorted_bam=$TMP_DIR/${{base}}_sorted.bam
-            samtools sort -o $sorted_bam $bam
-            TMP_SORTED_BAMS="$TMP_SORTED_BAMS $sorted_bam"
-        done
-
-        samtools merge {output.bam} $TMP_SORTED_BAMS
-        samtools index {output.bam}
-        rm -r $TMP_DIR
-    }} > {log} 2>&1
+        """
+        {{
+            TMP_DIR=$(mktemp -d)
+            TMP_SORTED_BAMS=""
+    
+            for bam in {input}; do
+                base=$(basename $bam .bam)
+                sorted_bam=$TMP_DIR/${{base}}_sorted.bam
+                samtools sort -o $sorted_bam $bam
+                TMP_SORTED_BAMS="$TMP_SORTED_BAMS $sorted_bam"
+            done
+    
+            samtools merge {output.bam} $TMP_SORTED_BAMS
+            samtools index {output.bam}
+            rm -r $TMP_DIR
+        }} > {log} 2>&1
     """
 
 
