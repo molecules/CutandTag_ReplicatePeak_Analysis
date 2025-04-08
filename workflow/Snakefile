@@ -95,6 +95,8 @@ rule call_peaks_with_macs2:
         output_dir="results/macs2Peaks/"
     envmodules:
         config["macs2"]
+    log:
+        "results/logs/call_peaks_with_macs2.{sample}.snakemake.log"
     shell:
         """
         macs2 callpeak -t {input.bam} \
@@ -119,8 +121,11 @@ rule merge_bams_per_set:
         bai="results/mergedBam/{Set}_merged.bam.bai"
     envmodules:
         config["samtools"]
+    log:
+        "results/logs/merge_bams_per_set.{Set}.snakemake.log"
     shell:
-        """
+    """
+    {{
         TMP_DIR=$(mktemp -d)
         TMP_SORTED_BAMS=""
 
@@ -134,7 +139,8 @@ rule merge_bams_per_set:
         samtools merge {output.bam} $TMP_SORTED_BAMS
         samtools index {output.bam}
         rm -r $TMP_DIR
-        """
+    }} > {log} 2>&1
+    """
 
 
 ##################################################################
@@ -153,11 +159,13 @@ rule call_macs2_on_merged_bam:
         outdir="results/mergedPeaks/"
     envmodules:
         config["macs2"]
+    log:
+        "results/logs/call_macs2_on_merged_bam.{Set}.snakemake.log"
     shell:
         """
         macs2 callpeak -t {input.bam} \
         -g {params.genome} -f BAMPE -n {params.sample_name}_{params.qvalue} \
-        --outdir {params.outdir} -q {params.qvalue} --keep-dup all --nomodel
+        --outdir {params.outdir} -q {params.qvalue} --keep-dup all --nomodel > {log} 2>&1
         """
 
 
@@ -179,9 +187,11 @@ rule generate_consensus_peaks_by_overlap:
     envmodules:
         config["R"],
         config["bioconductor"]
+    log:
+        "results/logs/generate_consensus_peaks_by_overlap.{Set}.snakemake.log"
     shell:
         """
-        Rscript scripts/filterConsensusFromMergedPeakSet.R {input.merged_peaks} {input.replicate_peaks} {params.min_overlap} {output.consensus}
+        Rscript scripts/filterConsensusFromMergedPeakSet.R {input.merged_peaks} {input.replicate_peaks} {params.min_overlap} {output.consensus} > {log} 2>&1
         """
 
 
@@ -198,10 +208,12 @@ rule extract_reads_for_consensus:
         index="results/consensusPeaks/{Set}_filtered.bam.bai"
     envmodules:
         config["samtools"]
+    log:
+        "results/logs/extract_reads_for_consensus.{Set}.snakemake.log"
     shell:
         """
         samtools view -b {input.merged_bam} -L {input.consensus_bed} > {output.filtered_bam}
-        samtools index {output.filtered_bam}
+        samtools index {output.filtered_bam} >> {log} 2>&1
         """
 
 
@@ -219,10 +231,15 @@ rule create_bigwig_from_consensus:
         genome_size=config["effective_genome_size"]
     envmodules:
         config["deeptools"]
+    log:
+        "results/logs/create_bigwig_from_consensus.{Set}.snakemake.log"
     shell:
         """
-        bamCoverage --bam {input.bam} --outFileName {output.bigwig} \
-        --binSize {params.bin_size} --effectiveGenomeSize {params.genome_size} --normalizeUsing CPM
+        bamCoverage --bam {input.bam} \
+        --outFileName {output.bigwig} \
+        --binSize {params.bin_size} \
+        --effectiveGenomeSize {params.genome_size} \
+        --normalizeUsing CPM > {log} 2>&1
         """
 
 
@@ -248,12 +265,14 @@ rule make_euler_plot_of_overlaps_from_beds:
     envmodules:
         config["R"],
         config["bioconductor"]
+    log:
+        "results/logs/make_euler_plot_of_overlaps_from_beds.{Set}.snakemake.log"
     shell:
         """
         BED_FILES=$(echo {input.beds} | tr ' ' ',')
         Rscript scripts/makeEulerPlotOfBedOverlaps.R "$BED_FILES" "{params.set_names}" \
             {output.rds} {output.pdf} {params.font_size} "{params.colors}" \
-            {params.pdf_width} {params.pdf_height}
+            {params.pdf_width} {params.pdf_height} > {log} 2>&1
         """
 
 
@@ -273,9 +292,11 @@ rule midpoint_and_peak_overlaps:
     envmodules:
         config["R"],
         config["bioconductor"]
+    log:
+        "results/logs/midpoint_and_peak_overlaps.snakemake.log"
     shell:
         """
-        Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.out_dir}
+        Rscript scripts/midpointAndPeakOverlaps.R {input.reproducible_beds} {params.out_dir} > {log} 2>&1
         """
 
 
@@ -302,17 +323,19 @@ rule generate_heatmap:
         )
     envmodules:
         config["deeptools"]
+    log:
+        "results/logs/generate_heatmap.snakemake.log"
     shell:
         """
         computeMatrix reference-point -S {input.bigwigs} -R {input.midpoints} \
         --outFileName {output.matrix} -a {params.after_region} -b {params.before_region} \
-        --numberOfProcessors {params.processors}
+        --numberOfProcessors {params.processors} > {log} 2>&1
 
         plotHeatmap -m {output.matrix} -out {output.heatmap} \
         --dpi 1000 --sortUsing sum --sortUsingSamples {params.sampleOrder} \
         --refPointLabel "{params.refPointName}" \
         --regionsLabel "{params.regionsName}" \
-        --samplesLabel {params.samplesLabel}
+        --samplesLabel {params.samplesLabel} >> {log} 2>&1
         """
 
 ##################################################################
@@ -354,6 +377,8 @@ rule euler_plot_by_mark:
     envmodules:
         config["R"],
         config["bioconductor"]
+    log:
+        "results/logs/euler_plot_by_mark.{mark}.snakemake.log"
     shell:
         """
         # Turn the list of input .bed files into a comma-separated string
@@ -373,7 +398,7 @@ rule euler_plot_by_mark:
             {params.font_size} \
             "{params.colors}" \
             {params.pdf_width} \
-            {params.pdf_height}
+            {params.pdf_height} > {log} 2>&1
         """
 
 ##################################################################
@@ -409,6 +434,8 @@ rule generate_unique_heatmap:
         )
     envmodules:
         config["deeptools"]
+    log:
+        "results/logs/generate_unique_heatmap.snakemake.log"
     shell:
         """
         computeMatrix reference-point \
@@ -416,7 +443,7 @@ rule generate_unique_heatmap:
             -R {input.uniqueBeds} \
             --outFileName {output.matrix} \
             -a {params.after_region} -b {params.before_region} \
-            --numberOfProcessors {params.processors}
+            --numberOfProcessors {params.processors} > {log} 2>&1
 
         plotHeatmap \
             -m {output.matrix} \
@@ -426,5 +453,5 @@ rule generate_unique_heatmap:
             --sortUsingSamples {params.sampleOrder} \
             --refPointLabel "{params.refPointName}" \
             --samplesLabel {params.samplesLabel} \
-            --regionsLabel {params.regionLabels}
+            --regionsLabel {params.regionLabels} >> {log} 2>&1
         """
