@@ -1,6 +1,7 @@
 ![GitHub Release](https://img.shields.io/github/v/release/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
 ![GitHub Release Date](https://img.shields.io/github/release-date/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
 ![GitHub repo size](https://img.shields.io/github/repo-size/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
+![GitHub last commit](https://img.shields.io/github/last-commit/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
 ![GitHub contributors](https://img.shields.io/github/contributors/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis/total)
 ![GitHub commits since latest release](https://img.shields.io/github/commits-since/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis/latest)
