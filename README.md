@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/898608902.svg)](https://doi.org/10.5281/zenodo.15232319)
+
 # CutandTag_ReplicatePeak_Analysis
 
 ![ReplicatePeaks](/images/replicatePeaks.png)
