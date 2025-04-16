@@ -1,3 +1,7 @@
+![GitHub Release](https://img.shields.io/github/v/release/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
+![GitHub Release Date](https://img.shields.io/github/release-date/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
+![GitHub repo size](https://img.shields.io/github/repo-size/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
+![GitHub contributors](https://img.shields.io/github/contributors/JK-Cobre-Help/CutandTag_ReplicatePeak_Analysis)
 [![DOI](https://zenodo.org/badge/898608902.svg)](https://doi.org/10.5281/zenodo.15232319)
 
 # CutandTag_ReplicatePeak_Analysis
