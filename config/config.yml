@@ -10,11 +10,12 @@ genome: "mm"
 # For human genome - "hs" / for mouse genome - "mm"
 
 ## sample order (indicate which sample should set the order of the midpoints.bed in heatmap [1 to nSamples])
-sampleOrder: 1,2,3,4,5,6
+sampleOrder: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 
 ## effective genome size
-effective_genome_size: 2730871774
-# mm10 genome size - 2730871774       
+effective_genome_size: 2654621783
+# GRCm39 is 2654621783, according to https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html
+# mm10 genome size - 2730871774
 # GRCh38 genome size - 2913022398
 
 ## macs2 options
@@ -25,13 +26,13 @@ minNumberOfSampleOverlaps: 2
 binSize: 50
 
 ## bedtobam
-chrom_sizes: "resources/mm10.chrom.sizes"
+chrom_sizes: "resources/mm39ensembl.chrom.sizes"
 # For human - "resources/hg38.chrom.sizes" / for mouse - "resources/mm10.chrom.sizes"
 
 ## Euler plot parameters
 EulerFontSize: 8                          # Base font size for the Euler plot
-EulerColors1: "#4477AA,#228833,#CCBB44"   # Comma-separated hex colors for the plot
-EulerColors2: "#4477AA,#228833"           # Comma-separated hex colors for the plot
+EulerColors1: "#4477AA,#228833,#CCBB44,#BEB5FF"   # Comma-separated hex colors for the plot
+EulerColors2: "#4477AA,#228833,#CCBB44,#BEB5FF"   # Comma-separated hex colors for the plot
 EulerWidth: 5                             # Width of the PDF plot in inches
 EulerHeight: 5                            # Height of the PDF plot in inches
 
